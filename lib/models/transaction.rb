@@ -1,15 +1,15 @@
 require "date"
 
 class Transaction
-  attr_reader :id 
+  attr_accessor :id 
   # @return [Float]
-  attr_reader :price
+  attr_accessor :price
   # @return [Date]
-  attr_reader :date
+  attr_accessor :date
   # @return [Category]
-  attr_reader :category
+  attr_accessor :category
   # @return [String]
-  attr_reader :merchant
+  attr_accessor :merchant
 
   # @param id - unique identifier
   # @param price: [Float] - amount spent in transaction
