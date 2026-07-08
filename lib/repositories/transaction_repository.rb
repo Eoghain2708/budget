@@ -33,18 +33,69 @@ class TransactionRepository
 
   end
 
-  # @param category_id [Integer]
+  # @param category [Category]
   # @return [Array<Transaction>]
-  def find_by_category(category_id)
+  def find_by_category(category)
     rows = @db.execute(
       <<~SQL,
         SELECT * FROM transactions
         WHERE category_id = ?
       SQL
-      [category_id]
+      [category.id]
     )
 
     return [] unless rows
+    rows.map do |row|
+      build_transaction(row)
+    end
+  end
+
+  # @param merchant [String]
+  # @return [Array<Transaction>]
+  def find_by_merchant(merchant)
+    rows = @db.execute(
+      <<~SQL,
+        SELECT * FROM transactions
+        WHERE merchant LIKE ?
+      SQL
+      [merchant]
+    )
+
+    return [] unless rows
+    rows.map do |row|
+      build_transaction(row)
+    end
+  end
+
+  # @param date [Date]
+  # @return [Array<Transaction>]
+  def find_by_date(date)
+    rows = @db.execute(
+      <<~SQL,
+        SELECT * FROM transactions
+        WHERE date = ?
+      SQL
+      [date]
+    )
+
+    rows.map do |row|
+      build_transaction(row)
+    end
+  end
+
+  # @param from [Date]
+  # @param to [Date] - if not provided, defaults to Date.today
+  # @return [Array<Transaction>]
+  def find_between(from: nil, to: Date.today)
+    rows = @db.execute(
+      <<~SQL,
+        SELECT * FROM transactions
+        WHERE date >= ?
+        AND date <= ?
+      SQL
+      [from, to]
+    )
+
     rows.map do |row|
       build_transaction(row)
     end
