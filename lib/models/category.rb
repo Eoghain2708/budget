@@ -12,6 +12,7 @@ class Category
   def initialize(id: nil, title:, colour:)
     raise ArgumentError, "Invalid name" unless title && title.length > 1
     raise ArgumentError, "Invalid colour" unless ALLOWED_COLOURS.include?(colour)
+    @id = id
     @title = title
     @colour = colour
   end

@@ -30,8 +30,9 @@ class Migrations
         date TEXT NOT NULL,
         category_id INTEGER NOT NULL,
         merchant TEXT,
+        nature TEXT,
 
-        FOREIGN_KEY(category_id)
+        FOREIGN_KEY category_id
           REFERENCES categories(id)
       );
     SQL

@@ -67,6 +67,21 @@ class ReportService
   end
 
 
+  # @param transactions [Array<Transaction>]
+  # @return [Array<Transactions]
+  def find_all_expenses(transactions)
+    result = transactions.select { |t| t.nature == :expense}
+    result
+  end
+
+  # @param transactions [Array<Transaction>]
+  # @return [Array<Transaction>]
+  def find_all_earnings(transactions)
+    result = transactions.select { |t| t.nature == :income }
+    result
+  end
+
+
   private
   # @param transactions [Array<Transaction>]
   # @param from: [Date]

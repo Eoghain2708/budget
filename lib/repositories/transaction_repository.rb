@@ -83,6 +83,7 @@ class TransactionRepository
     end
   end
 
+
   # @param from [Date]
   # @param to [Date] - if not provided, defaults to Date.today
   # @return [Array<Transaction>]
@@ -134,7 +135,9 @@ class TransactionRepository
   # price => Float,
   # date => String
   # category_id => Integer,
-  # merchant => String
+  # merchant => String,
+  # nature => Symbol
+  # 
   # }
   # @return [Transaction]
   def self.build_transaction(row)
@@ -145,7 +148,9 @@ class TransactionRepository
       price: row["price"],
       date: Date.parse(row["date"]),
       category: category,
-      merchant: row["merchant"]
+      merchant: row["merchant"],
+      nature: row["nature"].to_sym
+
     )
   end
 
@@ -155,10 +160,10 @@ class TransactionRepository
   def create(transaction)
     @db.execute(
       <<~SQL,
-        INSERT INTO transactions (price, date, category_id, merchant)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO transactions (price, date, category_id, merchant, nature)
+        VALUES (?, ?, ?, ?, ?)
       SQL
-      [transaction.price, transaction.date.to_s, transaction.category.id, transaction.merchant]
+      [transaction.price, transaction.date.to_s, transaction.category.id, transaction.merchant, transaction.nature]
     )
     transaction.id = @db.last_insert_row_id
     transaction
@@ -170,10 +175,10 @@ class TransactionRepository
     @db.execute(
       <<~SQL,
         UPDATE transactions
-        SET price = ?, date = ?, category_id = ?, merchant = ?
+        SET price = ?, date = ?, category_id = ?, merchant = ?, nature = ?
         WHERE id = ?
       SQL
-      [transaction.price, transaction.date.to_s, transaction.category.id, transaction.merchant, transaction.id]
+      [transaction.price, transaction.date.to_s, transaction.category.id, transaction.merchant, transaction.nature, transaction.id]
     )
 
     transaction

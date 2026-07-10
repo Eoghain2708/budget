@@ -5,7 +5,7 @@ class Database
   def self.connection
     # [SQLite3::Database]
     @connection ||= begin
-    db = SQLite3::Database.new("/db/budget.db")
+    db = SQLite3::Database.new("db/budget.db")
     db.results_as_hash = true
     db
     end

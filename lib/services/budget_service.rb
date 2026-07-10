@@ -39,10 +39,31 @@ class BudgetService
     @categories.delete(category_id)
   end
 
-  def add_transaction(price:, category_title:, **options)
+  # @return [Array<Category>]
+  def get_all_categories
+    @categories.all
+  end
+
+  def add_expense(price:, category_title:,  **options)
+    category = @categories.find_by_title(category_title)
+    return nil unless category
     transaction = Transaction.new(
       price: price,
       category: category,
+      nature: :expense,
+      **options
+    )
+
+    @transactions.save(transaction)
+  end
+
+  def add_income(price:, category_title:, **options)
+    category = @categories.find_by_title(category_title)
+    return nil unless category
+    transaction = Transaction.new(
+      price: price,
+      category: category,
+      nature: :income,
       **options
     )
 
@@ -54,8 +75,9 @@ class BudgetService
   # @param new_category_title [String]
   # @param new_date [Date]
   # @param new_merchant [String]
+  # @param new_nature [Symbol]
   # @return [Transaction]
-  def edit_transaction(id, new_price: nil, new_category_title: nil, new_date: nil, new_merchant: nil)
+  def edit_transaction(id, new_price: nil, new_category_title: nil, new_date: nil, new_merchant: nil, new_nature: nil)
     transaction = @transactions.find(id)
     new_category = @categories.find_by_title(title)
     transaction.price = new_price if new_price

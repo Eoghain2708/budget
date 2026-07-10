@@ -87,10 +87,11 @@ class CategoryRepository
   # @param [Hash] row 
   # @param example: {id => Integer, title => String, colour => String}
   # @return [Category]
-  def self.build_category(row)
+  def build_category(row)
+    pp row
     Category.new(
       id: row["id"],
-      name: row["title"],
+      title: row["title"],
       colour: row["colour"]
     )
   end
@@ -123,7 +124,8 @@ class CategoryRepository
       [category.title, category.colour]
     )
     category.id = @db.last_insert_row_id
-    
+    pp category.id
+    pp @db.execute("SELECT * FROM categories")
     category
   end
 
