@@ -88,7 +88,6 @@ class CategoryRepository
   # @param example: {id => Integer, title => String, colour => String}
   # @return [Category]
   def build_category(row)
-    pp row
     Category.new(
       id: row["id"],
       title: row["title"],
@@ -124,8 +123,6 @@ class CategoryRepository
       [category.title, category.colour]
     )
     category.id = @db.last_insert_row_id
-    pp category.id
-    pp @db.execute("SELECT * FROM categories")
     category
   end
 

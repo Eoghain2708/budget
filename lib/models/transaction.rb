@@ -26,7 +26,7 @@ class Transaction
     end
     raise ArgumentError, "Invalid Price" unless price.positive?
     raise ArgumentError, "Invalid Date" if date > Date.today
-    
+    @id = id
     @price = price
     @date = date
     @category = category

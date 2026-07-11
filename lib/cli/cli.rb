@@ -1,8 +1,8 @@
 require_relative "../budget"
+require_relative "prompts"
+require_relative "commands"
 
 class CLI
-
- 
   def initialize()
     database = Database.connection()
     Migrations.migrate(database)
@@ -15,16 +15,11 @@ class CLI
 
   # @param argv [Array<String>]
   def run(argv)
-    
-
-
     command = argv.shift
 
     case command.downcase.strip
-    when "out", "spend", "s"
-      expense_transaction(argv)
-    when "in", "earn", "i"
-      income_transaction(argv)
+    when "transaction", "trans", "tran", "t"
+      Commands::AddTransaction.new(@bs, @rs).run
     when "from", "f"
       summary_between(argv)
     when "month"
@@ -34,26 +29,13 @@ class CLI
     when "day"
       daily_summary(argv)
     when "addcat", "category", "cat"
-      add_category(argv)
+      Commands::AddCategory.new(@bs).run
     when "allcategories"
       show_all_categories
+    else 
+      "Invalid command"
     end
   end
 
-  # @param argv [Array<String>]
-  def add_category(argv)
-    category_name = "Fuel"
-    category_colour = "magenta"
-    @bs.create_category(title: category_name, colour: category_colour)
-  end
-
-  def show_all_categories
-    categories = @bs.get_all_categories
-    categories.each do |category|
-      p category.title
-      p category.colour
-      p category.id
-    end
-  end
 
 end

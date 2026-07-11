@@ -14,7 +14,7 @@ class TransactionRepository
   # @param transaction [Transaction]
   # @return [Transaction]
   def save(transaction)
-    transaction.id.nil ? create(transaction) : update(transaction)
+    transaction.id == nil ? create(transaction) : update(transaction)
   end
 
   # @param id [Integer]
@@ -163,7 +163,7 @@ class TransactionRepository
         INSERT INTO transactions (price, date, category_id, merchant, nature)
         VALUES (?, ?, ?, ?, ?)
       SQL
-      [transaction.price, transaction.date.to_s, transaction.category.id, transaction.merchant, transaction.nature]
+      [transaction.price, transaction.date.to_s, transaction.category.id, transaction.merchant, transaction.nature.to_s]
     )
     transaction.id = @db.last_insert_row_id
     transaction
@@ -178,7 +178,7 @@ class TransactionRepository
         SET price = ?, date = ?, category_id = ?, merchant = ?, nature = ?
         WHERE id = ?
       SQL
-      [transaction.price, transaction.date.to_s, transaction.category.id, transaction.merchant, transaction.nature, transaction.id]
+      [transaction.price, transaction.date.to_s, transaction.category.id, transaction.merchant, transaction.nature.to_s, transaction.id]
     )
 
     transaction

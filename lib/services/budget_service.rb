@@ -44,8 +44,7 @@ class BudgetService
     @categories.all
   end
 
-  def add_expense(price:, category_title:,  **options)
-    category = @categories.find_by_title(category_title)
+  def add_expense(price:, category:,  **options)
     return nil unless category
     transaction = Transaction.new(
       price: price,
@@ -57,14 +56,25 @@ class BudgetService
     @transactions.save(transaction)
   end
 
-  def add_income(price:, category_title:, **options)
-    category = @categories.find_by_title(category_title)
+  def add_income(price:, category:, **options)
     return nil unless category
     transaction = Transaction.new(
       price: price,
       category: category,
       nature: :income,
       **options
+    )
+
+    @transactions.save(transaction)
+  end
+
+  def add_transaction(price:, category:, merchant:, nature:)
+    return nil unless category
+    transaction = Transaction.new(
+      price: price,
+      category: category,
+      nature: nature,
+      merchant: merchant
     )
 
     @transactions.save(transaction)
