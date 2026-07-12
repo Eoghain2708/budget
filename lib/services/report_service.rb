@@ -86,6 +86,15 @@ class ReportService
   # @param transactions [Array<Transaction>]
   # @param from: [Date]
   # @param to: [Date]
+  # @return [Hash] => { 
+  # from: Date, 
+  # to: Date, 
+  # transactions: Array<Transaction>, 
+  # transaction_count: Integer, 
+  # total_spent: Float, 
+  # category_breakdown: Hash,
+  # merchant_breakdown: Hash
+  # }
   def build_summary(transactions, from:, to:)
     {
       from: from,

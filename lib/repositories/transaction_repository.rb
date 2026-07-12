@@ -94,7 +94,7 @@ class TransactionRepository
         WHERE date >= ?
         AND date <= ?
       SQL
-      [from, to]
+      [from.iso8601, to.iso8601]
     )
 
     rows.map do |row|
@@ -140,7 +140,7 @@ class TransactionRepository
   # 
   # }
   # @return [Transaction]
-  def self.build_transaction(row)
+  def build_transaction(row)
     category = @category_repo.find(row["category_id"])
 
     Transaction.new(
@@ -163,7 +163,7 @@ class TransactionRepository
         INSERT INTO transactions (price, date, category_id, merchant, nature)
         VALUES (?, ?, ?, ?, ?)
       SQL
-      [transaction.price, transaction.date.to_s, transaction.category.id, transaction.merchant, transaction.nature.to_s]
+      [transaction.price, transaction.date.iso8601, transaction.category.id, transaction.merchant, transaction.nature.to_s]
     )
     transaction.id = @db.last_insert_row_id
     transaction
@@ -178,7 +178,7 @@ class TransactionRepository
         SET price = ?, date = ?, category_id = ?, merchant = ?, nature = ?
         WHERE id = ?
       SQL
-      [transaction.price, transaction.date.to_s, transaction.category.id, transaction.merchant, transaction.nature.to_s, transaction.id]
+      [transaction.price, transaction.date.iso8601, transaction.category.id, transaction.merchant, transaction.nature.to_s, transaction.id]
     )
 
     transaction

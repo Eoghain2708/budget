@@ -21,7 +21,7 @@ class CategoryRepository
 
     Category.new(
       id: row["id"],
-      name: row["title"],
+      title: row["title"],
       colour: row["colour"]
     )
   end

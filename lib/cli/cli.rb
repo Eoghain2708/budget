@@ -25,13 +25,13 @@ class CLI
     when "month"
       monthly_summary(argv)
     when "week"
-      weekly_summary(argv)
+      Commands::WeeklySummary.new(@bs, @rs).run(argv.first)
     when "day"
       daily_summary(argv)
     when "addcat", "category", "cat"
       Commands::AddCategory.new(@bs).run
     when "allcategories"
-      show_all_categories
+      Commands::ShowCategories.new(@bs).run
     else 
       "Invalid command"
     end
