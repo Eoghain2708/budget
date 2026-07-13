@@ -2,6 +2,7 @@ require "tty-prompt"
 require "pastel"
 require_relative "prompts"
 require "date"
+require_relative "summary_formatter"
 
 module Commands
 
@@ -82,7 +83,7 @@ module Commands
     def run(date)
       return {} unless date
       summary = @rs.weekly_summary(Date.parse(date))
-      pp summary
+      SummaryFormatter.format(summary)
     end
   end
 

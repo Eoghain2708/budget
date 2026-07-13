@@ -101,7 +101,9 @@ class ReportService
       to: to,
       transactions: transactions,
       transaction_count: transactions.size,
-      total_spent: transactions.sum(&:price),
+      total_expense: transactions.select { |t| t.nature == :expense }.sum(&:price),
+      total_income: transactions.select { |t| t.nature == :income }.sum(&:price),
+      net_gain: (transactions.select { |t| t.nature == :income }.sum(&:price)) - (transactions.select { |t| t.nature == :expense }.sum(&:price)),
       category_breakdown: category_breakdown(transactions),
       merchant_breakdown: merchant_breakdown(transactions),
     }
@@ -124,12 +126,16 @@ class ReportService
   # @return [Hash] - { count: Integer, total: Float }
   def merchant_breakdown(transactions)
     transactions
-    .group_by(&:category)
-    .transform_values do |ts|
-      {
-        count: ts.size,
-        total: ts.sum(&:price)
-      }
+    .group_by(&:merchant)
+    .transform_values do |merchant_transactions|
+      merchant_transactions
+      .group_by(&:nature)
+      .transform_values do |ts|
+        { 
+          count: ts.size,
+          total: ts.sum(&:price)
+        }
+      end
     end
   end
 end

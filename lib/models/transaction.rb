@@ -33,4 +33,12 @@ class Transaction
     @merchant = merchant
     @nature = nature
   end
+
+  def income?
+    @nature == :income
+  end
+
+  def expense?
+    @nature == :expense
+  end
 end
