@@ -16,4 +16,15 @@ class Category
     @title = title
     @colour = colour
   end
+
+
+  def ==(other)
+    other.is_a?(Category) && id == other.id
+  end
+
+  alias eql? == 
+
+  def hash
+    @id.hash
+  end
 end

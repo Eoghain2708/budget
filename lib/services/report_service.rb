@@ -112,14 +112,21 @@ class ReportService
   # @param transactions [Array<Transaction>]
   # @return [Hash] - { count: Integer, total: Float }
   def category_breakdown(transactions)
-    transactions
+    pp "ORIGINAL: #{transactions}"
+    result = transactions
     .group_by(&:category)
     .transform_values do |ts|
-      {
-        count: ts.size,
-        total: ts.sum(&:price)
-      }
+      ts.group_by(&:nature)
+      .transform_values do |group|
+        {
+          count: group.size,
+          total: group.sum(&:price)
+        }
+      end
     end
+    pp "-"
+    pp result
+    result
   end
 
   # @param transactions [Array<Transaction>]
@@ -137,5 +144,12 @@ class ReportService
         }
       end
     end
+  end
+
+  # @param summary [Hash]
+  # @param nature [Symbol]
+  # @return [Float]
+  def percentages_per_category(summary, nature:)
+    
   end
 end

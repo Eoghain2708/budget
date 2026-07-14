@@ -20,13 +20,16 @@ module SummaryFormatter
     summary_table = TTY::Table.new(
       [
         ["Transactions", summary[:transaction_count]],
-        ["Income", PASTEL.green(summary[:total_income])],
-        ["Expense", PASTEL.bright_red(summary[:total_expense])],
-        ["Net gain", summary[:net_gain].positive? ? PASTEL.bright_green(summary[:net_gain]) : PASTEL.red(summary[:net_gain])]
+        ["Income", PASTEL.green("+#{summary[:total_income]}")],
+        ["Expense", PASTEL.bright_red("-#{summary[:total_expense]}")],
+        ["Net gain", summary[:net_gain].positive? ? PASTEL.bright_green("+#{summary[:net_gain]}") : PASTEL.red("-#{summary[:net_gain]}")]
       ]
     )
     puts "#{PASTEL.bold message}: #{PASTEL.yellow.bold(summary[:from].strftime("%A %d %B %Y"))} => #{PASTEL.yellow.bold(summary[:to].strftime("%A %d %B %Y"))}"
+
+    puts PASTEL.bold("General Summary")
     puts PASTEL.bright_cyan.bold summary_table.render(:unicode)
+    puts PASTEL.bold("-" * 40)
   end
 
   # @param summary [Hash] 
@@ -34,41 +37,71 @@ module SummaryFormatter
   # category_breakdown: { count: Integer, total: Float },
   # merchant_breakdown: Hash } }
   def self.format_categories(summary)
-    rows = summary[:category_breakdown].map do |category, data|
-      [
+  income = []
+  expense = []
+    summary[:category_breakdown].each do |category, natures|
+      natures.each do |nature, data|
+        row = [
         PASTEL.public_send(category.colour.to_sym, category.title),
         data[:count],
         Kernel.format("£%.2f", data[:total])
-      ]
+        ]
+
+        income << row if nature == :income
+        expense << row if nature == :expense
+      end
     end
 
-    table = TTY::Table.new(
+    income_table = TTY::Table.new(
       header: ["Category", "Transactions", "Total"],
-      rows: rows
+      rows: income
     )
 
-    puts PASTEL.bright_magenta.bold table.render(:unicode)
+    expense_table = TTY::Table.new(
+      header: ["Category", "Transactions", "Total"],
+      rows: expense
+    )
+
+    puts PASTEL.bold("Incomes by category")
+    puts PASTEL.bright_green.bold income_table.render(:unicode)
+    puts PASTEL.bold("-" * 40)
+    puts PASTEL.bold("Expenses by category")
+    puts PASTEL.bright_red.bold expense_table.render(:unicode)
+
   end
 
 
   # @param summary [Hash]
   def self.format_merchants(summary)
-    rows = []
+    income = []
+    expense = []
     summary[:merchant_breakdown].each do |merchant, natures|
       natures.each do |nature, data|
-        rows << [
+        row = [
           merchant,
-          nature.to_s.capitalize,
           data[:count],
           Kernel.format("£%.2f", data[:total])
         ]
+
+        income << row if nature == :income
+        expense << row if nature == :expense
       end
     end
-    table = TTY::Table.new( 
-      header: ["Merchant", "Nature", "Transactions", "Total"],
-      rows: rows
+    
+    income_table = TTY::Table.new(
+      header: ["Merchant", "Transactions", "Total"],
+      rows: income
     )
 
-    puts PASTEL.blue table.render(:unicode)
+    expense_table = TTY::Table.new(
+      header: ["Merchant", "Transactions", "Total"],
+      rows: expense
+    )
+    
+    puts PASTEL.bold("Incomes by merchant")
+    puts PASTEL.bright_green.bold income_table.render(:unicode)
+    puts PASTEL.bold("-" * 40)
+    puts PASTEL.bold("Expenses by merchant")
+    puts PASTEL.bright_red.bold expense_table.render(:unicode)
   end
 end

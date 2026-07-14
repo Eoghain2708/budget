@@ -83,6 +83,7 @@ module Commands
     def run(date)
       return {} unless date
       summary = @rs.weekly_summary(Date.parse(date))
+      pp summary
       SummaryFormatter.format(summary)
     end
   end
