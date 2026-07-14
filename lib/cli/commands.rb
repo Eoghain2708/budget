@@ -3,6 +3,7 @@ require "pastel"
 require_relative "prompts"
 require "date"
 require_relative "summary_formatter"
+require_relative "../helpers/date_helper"
 
 module Commands
 
@@ -83,8 +84,8 @@ module Commands
     def run(date)
       return {} unless date
       summary = @rs.weekly_summary(Date.parse(date))
-      pp summary
-      SummaryFormatter.format(summary)
+      last_week_summary = @rs.weekly_summary(Date.parse(date) - 7)
+      SummaryFormatter.new(summary, last_week_summary).format
     end
   end
 

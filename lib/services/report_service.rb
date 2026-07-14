@@ -96,7 +96,7 @@ class ReportService
   # merchant_breakdown: Hash
   # }
   def build_summary(transactions, from:, to:)
-    {
+    result = {
       from: from,
       to: to,
       transactions: transactions,
@@ -104,43 +104,53 @@ class ReportService
       total_expense: transactions.select { |t| t.nature == :expense }.sum(&:price),
       total_income: transactions.select { |t| t.nature == :income }.sum(&:price),
       net_gain: (transactions.select { |t| t.nature == :income }.sum(&:price)) - (transactions.select { |t| t.nature == :expense }.sum(&:price)),
-      category_breakdown: category_breakdown(transactions),
-      merchant_breakdown: merchant_breakdown(transactions),
+      
     }
-  end
 
-  # @param transactions [Array<Transaction>]
-  # @return [Hash] - { count: Integer, total: Float }
-  def category_breakdown(transactions)
-    pp "ORIGINAL: #{transactions}"
-    result = transactions
-    .group_by(&:category)
-    .transform_values do |ts|
-      ts.group_by(&:nature)
-      .transform_values do |group|
-        {
-          count: group.size,
-          total: group.sum(&:price)
-        }
-      end
-    end
-    pp "-"
-    pp result
+    totals = { income: result[:total_income], expense: result[:total_expense] }
+    result[:category_breakdown] = category_breakdown(transactions, totals)
+    result[:merchant_breakdown] = merchant_breakdown(transactions, totals)
     result
   end
 
   # @param transactions [Array<Transaction>]
+  # @param totals [Hash] { income: Float, expense: Float }
+  # @return [Hash] - { count: Integer, total: Float, percentage: Float }
+  def category_breakdown(transactions, totals)
+    result = transactions
+    .group_by(&:category)
+    .transform_values do |ts|
+      ts.group_by(&:nature)
+      .each_with_object({}) do |(nature, group), result|
+        total = group.sum(&:price)
+        
+        result[nature] =
+        {
+          count: group.size,
+          total: total,
+          percentage: (totals[nature].zero? ? 0.0 : total / totals[nature]) * 100
+        }
+      end
+    end
+    result
+  end
+
+  # @param transactions [Array<Transaction>]
+  # @param totals [Hash] - { income: Float, expense: Float }
   # @return [Hash] - { count: Integer, total: Float }
-  def merchant_breakdown(transactions)
+  def merchant_breakdown(transactions, totals)
     transactions
     .group_by(&:merchant)
-    .transform_values do |merchant_transactions|
-      merchant_transactions
-      .group_by(&:nature)
-      .transform_values do |ts|
-        { 
-          count: ts.size,
-          total: ts.sum(&:price)
+    .transform_values do |ts|
+      ts.group_by(&:nature)
+      .each_with_object({}) do |(nature, group), result|
+        total = group.sum(&:price)
+
+        result[nature] =
+        {
+          count: group.size,
+          total: total,
+          percentage: (totals[nature].zero? ? 0.0 : total / totals[nature]) * 100
         }
       end
     end
