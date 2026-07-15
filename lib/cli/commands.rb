@@ -80,12 +80,46 @@ module Commands
       @rs = rs
     end
 
-    # @param date [String]
+    # @param date [Date]
     def run(date)
       return {} unless date
-      summary = @rs.weekly_summary(Date.parse(date))
-      last_week_summary = @rs.weekly_summary(Date.parse(date) - 7)
-      SummaryFormatter.new(summary, last_week_summary).format
+      summary = @rs.weekly_summary(date)
+      last_week_summary = @rs.weekly_summary(date - 7)
+      SummaryFormatter.new(summary, last_week_summary, period: :week).format
+    end
+  end
+
+  class MonthlySummary
+    # @param bs [BudgetService]
+    # @param rs [ReportService]
+    def initialize(bs, rs)
+      @bs = bs
+      @rs = rs
+    end
+
+    # @param date [Date]
+    def run(date)
+      return {} unless date
+      summary = @rs.monthly_summary(date)
+      last_month_summary = @rs.monthly_summary(date << 1)
+      SummaryFormatter.new(summary, last_month_summary, period: :month).format
+    end
+  end
+
+  class DailySummary
+    # @param bs [BudgetService]
+    # @param rs [ReportService]
+    def initialize(bs, rs)
+      @bs = bs
+      @rs = rs
+    end
+
+    # @param date [Date]
+    def run(date)
+      return {} unless date
+      summary = @rs.monthly_summary(date)
+      yesterday_summary = @rs.daily_summary(date - 1)
+      SummaryFormatter.new(summary, yesterday_summary, period: :day).format
     end
   end
 

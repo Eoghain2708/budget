@@ -8,6 +8,22 @@ class Migrations
     create_transactions(db)
   end
 
+  def self.clear_transactions(db)
+    db.execute(
+      <<~SQL,
+        DELETE FROM transactions
+      SQL
+    )
+  end
+
+  def self.clear_categories(db)
+    db.execute(
+    <<~SQL,
+      DELETE FROM transactions
+    SQL
+    )
+  end
+
 
   private 
   # @param db [SQLite3::Database]

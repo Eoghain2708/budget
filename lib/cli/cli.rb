@@ -1,6 +1,7 @@
 require_relative "../budget"
 require_relative "prompts"
 require_relative "commands"
+require_relative "../helpers/period_definer"
 
 class CLI
   def initialize()
@@ -24,11 +25,14 @@ class CLI
     when "from", "f"
       summary_between(argv)
     when "month"
-      monthly_summary(argv)
+      date = PeriodDefiner.define_month(argv.first)
+      Commands::MonthlySummary.new(@bs, @rs).run(date)
     when "week"
-      Commands::WeeklySummary.new(@bs, @rs).run(argv.first)
+      date = PeriodDefiner.define_week(argv.first)
+      Commands::WeeklySummary.new(@bs, @rs).run(date)
     when "day"
-      daily_summary(argv)
+      date = PeriodDefiner.define_day(argv.first)
+      Commands::DailySummary.new(@bs, @rs).run(date)
     when "addcat", "category", "cat"
       Commands::AddCategory.new(@bs).run
     when "allcategories"

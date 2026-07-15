@@ -110,6 +110,25 @@ class ReportService
     totals = { income: result[:total_income], expense: result[:total_expense] }
     result[:category_breakdown] = category_breakdown(transactions, totals)
     result[:merchant_breakdown] = merchant_breakdown(transactions, totals)
+
+    # sort category_breakdown 
+    sorted_category_breakdown = result[:category_breakdown].sort_by do |_, natures|
+      income = natures.dig(:income, :total) || 0
+      expense = natures.dig(:expense, :total) || 0
+      income - expense
+    end.reverse 
+    result[:category_breakdown] = sorted_category_breakdown.to_h
+
+
+    # sort merchant_breakdown
+    sorted_merchant_breakdown = result[:merchant_breakdown].sort_by do |_, natures|
+      income = natures.dig(:income, :total) || 0
+      expense = natures.dig(:expense, :total) || 0
+      income - expense
+    end.reverse 
+    result[:merchant_breakdown] = sorted_merchant_breakdown.to_h
+
+
     result
   end
 
@@ -154,12 +173,5 @@ class ReportService
         }
       end
     end
-  end
-
-  # @param summary [Hash]
-  # @param nature [Symbol]
-  # @return [Float]
-  def percentages_per_category(summary, nature:)
-    
   end
 end

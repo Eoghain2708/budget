@@ -4,20 +4,24 @@ require "tty-table"
 
 class SummaryFormatter
   PASTEL = Pastel.new
-
+  ALLOWED_PERIODS = [:day, :week, :month, :year].freeze
 
   # @param summary [Hash]
-  # @param last_week_summary [Hash]
-  def initialize(summary, last_week_summary)
+  # @param previous_summary [Hash] - previous relative to the current summary i.e, if a weekly summary is passed, previous_summary
+  # will be the last week's summary, if a monthly summary is passed, previous will be last month, etc.
+  # @param period [Symbol] :day, :week, :month, :year
+  def initialize(summary, previous_summary, period:)
+    raise ArgumentError, "Invalid Period" unless ALLOWED_PERIODS.include?(period)
     @summary = summary
-    @prev = last_week_summary
+    @prev = previous_summary
+    @period = period
   end
 
 
-  def format(message="Report for period")
+  def format(message="Report for #{@period}")
     divide
     puts "#{PASTEL.bold message}: #{PASTEL.yellow.bold(@summary[:from].strftime("%A %d %B %Y"))} => #{PASTEL.yellow.bold(@summary[:to].strftime("%A %d %B %Y"))}"
-    print_one_line_greeting
+    print_net_gain_at_glance
     format_summary(message)
     format_categories()
     format_merchants()
@@ -26,7 +30,7 @@ class SummaryFormatter
  
   # @param message [String] 
   # @return [Void]
-  def format_summary(message="Report for period")
+  def format_summary(message="Report for #{@period}")
     summary_table = TTY::Table.new(
       [
         ["   Transactions   ", PASTEL.bold(@summary[:transaction_count])],
@@ -95,6 +99,7 @@ class SummaryFormatter
 
   private 
   # @param number [Float]
+  # @param signed [Boolean]
   # @return [String] - formatted money String
   def money(number, signed: false)
     return PASTEL.white.bold.dim "£0.00" if number.zero?
@@ -106,15 +111,22 @@ class SummaryFormatter
   end
 
   # @param number [Float]
+  # @param signed [False]
   # @return [String]
   def colourise_money_positive(number, signed: false)
     return PASTEL.green.bold("#{money(number, signed: signed)}")
   end
 
+  # @param number [Float]
+  # @param signed [False]
+  # @return [String]
   def colourise_money_negative(number, signed: false)
     return PASTEL.red.bold(money(number, signed: signed))
   end
 
+  # @param number [Float]
+  # @param signed [Boolean] - whether the resulting string will return a + or - depending on number.
+  # @return [String]
   def colourise_money(number, signed: false)
     if number > 0
       colourise_money_positive(number, signed: signed)
@@ -125,6 +137,8 @@ class SummaryFormatter
     end
   end
 
+  # @param natures [Hash]
+  # @return [Hash]
   def totals_by_nature(natures)
     {
       income: natures.fetch(:income, { count: 0, total: 0 }),
@@ -137,12 +151,48 @@ class SummaryFormatter
    puts ""
   end
 
-  def print_one_line_greeting
-    previous_earnings = @prev.dig(:net_gain)
-    puts PASTEL.bold("Net gain: #{colourise_money(@summary[:net_gain])}")
-    puts PASTEL.bright_green.bold "You earned more than you spent for this period!" if @summary[:net_gain].positive?
-    puts PASTEL.bright_red.bold "You spent more than you earned for this period!" if @summary[:net_gain].negative?
-    puts PASTEL.white.bold "You spent and earned equally for this period!" if @summary[:net_gain].zero?
-    puts PASTEL.bold("Last week's earnings: #{previous_earnings}")
+
+  # @return [Void]
+  def print_net_gain_at_glance
+    previous_earnings = @prev&.dig(:net_gain)
+    puts PASTEL.bold(" - Net gain: #{colourise_money(@summary[:net_gain])}")
+    puts PASTEL.bold(" - vs last #{@period}: #{colourise_percentage(compare_net_gain_to_previous)}")
+    puts PASTEL.bold(" - Previous #{@period}: #{colourise_money(previous_earnings, signed: true)}")
+    puts PASTEL.bright_green.bold("You earned more than you spent for this #{@period}!") if @summary[:net_gain].positive?
+    puts PASTEL.bright_red.bold("You spent more than you earned for this #{@period}!") if @summary[:net_gain].negative?
+    puts PASTEL.white.bold "You spent and earned equally for this #{@period}!" if @summary[:net_gain].zero?
+    
+  end
+
+  # @return [Float] - percentage difference between current and previous
+  def compare_net_gain_to_previous
+    compare_by_percentages(@summary&.dig(:net_gain), @prev&.dig(:net_gain))
+
+  end
+
+  # @param comparee [Float] - the main number being examined
+  # @param comparator [Float] - the number comparee will be compared against
+  # @return [Float] - the percentage difference between comparee and comparator
+  def compare_by_percentages(comparee, comparator)
+    (((comparee / comparator) * 100) - 100).round(2)
+  end
+
+  # @param percentage [Float]
+  def colourise_percentage(percentage)
+   # ▲, ▼
+  
+   if percentage == Float::INFINITY
+     return PASTEL.bold.white.dim("No data for last week")
+   end
+
+   if percentage.positive?
+     return PASTEL.bold.bright_green("▲#{percentage}%")
+   end
+
+   if percentage.negative?
+     return PASTEL.bold.bright_red("▼#{percentage}%")
+   end
+
+   return PASTEL.bold("0.00%")
   end
 end
