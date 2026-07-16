@@ -75,7 +75,7 @@ class TransactionRepository
         SELECT * FROM transactions
         WHERE date = ?
       SQL
-      [date]
+      [date.to_s]
     )
 
     rows.map do |row|

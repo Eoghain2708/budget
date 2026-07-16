@@ -117,7 +117,7 @@ module Commands
     # @param date [Date]
     def run(date)
       return {} unless date
-      summary = @rs.monthly_summary(date)
+      summary = @rs.daily_summary(date)
       yesterday_summary = @rs.daily_summary(date - 1)
       SummaryFormatter.new(summary, yesterday_summary, period: :day).format
     end

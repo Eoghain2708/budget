@@ -146,18 +146,21 @@ class SummaryFormatter
     }
   end
 
-  def divide
-   puts ""
-   puts ""
+  def divide(num=2)
+   num.times do
+     puts ""
+   end
   end
 
 
   # @return [Void]
   def print_net_gain_at_glance
-    previous_earnings = @prev&.dig(:net_gain)
-    puts PASTEL.bold(" - Net gain: #{colourise_money(@summary[:net_gain])}")
-    puts PASTEL.bold(" - vs last #{@period}: #{colourise_percentage(compare_net_gain_to_previous)}")
-    puts PASTEL.bold(" - Previous #{@period}: #{colourise_money(previous_earnings, signed: true)}")
+    puts PASTEL.bold.bright_cyan(" - Total income: #{PASTEL.bold.bright_green(@summary[:total_income])}")
+    puts PASTEL.bold.bright_blue(" - Total expense: #{PASTEL.bold.bright_red(@summary[:total_expense])}")
+    puts PASTEL.bold.bright_magenta(" - Total gain: #{colourise_money(@summary[:net_gain], signed: true)}")
+    divide 1
+    puts "#{PASTEL.bold.underline(" - Net gain vs last #{@period}: ")}" " #{PASTEL.bold(colourise_percentage(compare_net_gain_to_previous))}"
+    divide 1
     puts PASTEL.bright_green.bold("You earned more than you spent for this #{@period}!") if @summary[:net_gain].positive?
     puts PASTEL.bright_red.bold("You spent more than you earned for this #{@period}!") if @summary[:net_gain].negative?
     puts PASTEL.white.bold "You spent and earned equally for this #{@period}!" if @summary[:net_gain].zero?
@@ -167,22 +170,32 @@ class SummaryFormatter
   # @return [Float] - percentage difference between current and previous
   def compare_net_gain_to_previous
     compare_by_percentages(@summary&.dig(:net_gain), @prev&.dig(:net_gain))
+  end
 
+  def compare_spending_to_previous
+    compare_by_percentages(@summary&.dig(:total_expense), @prev&.dig(:total_expense))
+  end
+
+  def compare_income_to_previous
+    compare_by_percentages(@summary&.dig(:total_income), @prev&.dig(:total_income))
   end
 
   # @param comparee [Float] - the main number being examined
   # @param comparator [Float] - the number comparee will be compared against
   # @return [Float] - the percentage difference between comparee and comparator
   def compare_by_percentages(comparee, comparator)
-    (((comparee / comparator) * 100) - 100).round(2)
+    (((comparee.to_f / comparator.to_f) * 100) - 100).round(2)
   end
 
   # @param percentage [Float]
   def colourise_percentage(percentage)
    # ▲, ▼
+   if percentage.nan?
+     return PASTEL.bold.bright_red(" - No transactions for previous #{@period} to compare to.")
+   end
   
    if percentage == Float::INFINITY
-     return PASTEL.bold.white.dim("No data for last week")
+     return PASTEL.bold.white.dim("No data for last #{@period}")
    end
 
    if percentage.positive?
@@ -192,7 +205,5 @@ class SummaryFormatter
    if percentage.negative?
      return PASTEL.bold.bright_red("▼#{percentage}%")
    end
-
-   return PASTEL.bold("0.00%")
   end
 end
