@@ -21,8 +21,9 @@ module Commands
       title = @category_prompts.get_title
       PROMPT.ok("Creating category #{title}")
       colour = @category_prompts.get_colour
-      @bs.create_category(title: title, colour: colour)
+      category = @bs.create_category(title: title, colour: colour)
       PROMPT.ok("Created category #{PASTEL.public_send(colour.to_sym, title) } successfully!")
+      category
     end
   end
 
@@ -50,16 +51,38 @@ module Commands
       @category_prompts = Prompts::CategoryPrompts.new(PROMPT, PASTEL)
     end
 
-    def run
-      categories = @bs.get_all_categories.map do |cat|
+    def run(transaction_type: nil)
+      unless transaction_type
+        nature = @transaction_prompts.get_nature.to_sym
+        transaction_type = nature
+      end
+
+      categories = @bs.get_all_categories
+
+      if categories.empty?
+        puts PASTEL.bright_red "No categories found! Create one now."
+        AddCategory.new(@bs).run
+      end
+      
+      choices = categories.map do |cat|
         {
           name: PASTEL.decorate(cat.title, cat.colour.to_sym),
           value: cat
         }
       end
+      choices << {
+        name: PASTEL.bright_green("+Add a category"),
+        value: :add_category
+      }
 
-      nature = @transaction_prompts.get_nature.to_sym
-      category = @transaction_prompts.get_category(categories)
+      choice = @transaction_prompts.get_category(choices)
+
+      if choice == :add_category
+        category = AddCategory.new(@bs).run
+      else 
+        category = choice
+      end
+
       if category.title.strip.downcase == "work"
         merchant = "Omniplex Cinemas"
       else 
@@ -68,7 +91,7 @@ module Commands
       
       amount = @transaction_prompts.get_price.to_f
 
-      @bs.add_transaction(price: amount, category: category, merchant: merchant, nature: nature)
+      @bs.add_transaction(price: amount, category: category, merchant: merchant, nature: transaction_type)
     end
   end
 

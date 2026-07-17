@@ -20,8 +20,12 @@ class CLI
     command = argv.shift
 
     case command.downcase.strip
-    when "transaction", "trans", "tran", "t"
+    when "transaction", "trans"
       Commands::AddTransaction.new(@bs, @rs).run
+    when "earn"
+      Commands::AddTransaction.new(@bs, @rs).run(transaction_type: :income)
+    when "spend"
+      Commands::AddTransaction.new(@bs, @rs).run(transaction_type: :expense)
     when "from", "f"
       summary_between(argv)
     when "month"
