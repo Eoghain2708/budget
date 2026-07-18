@@ -128,6 +128,8 @@ class TransactionRepository
     rows
   end
 
+
+  
   private
   # @param row [Hash]
   # = {

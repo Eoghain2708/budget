@@ -35,7 +35,7 @@ class CategoryRepository
       <<~SQL,
         SELECT *
         FROM categories
-        WHERE title LIKE ?
+        WHERE title LIKE "%?%"
       SQL
       [title]
     ))
@@ -79,6 +79,20 @@ class CategoryRepository
 
     return false if @db.changes == 0
     return true
+  end
+
+  # @return [Array<String>]
+  def merchants
+    rows = @db.execute(
+      <<~SQL,
+        SELECT DISTINCT merchant
+        FROM transactions
+        ORDER BY merchant;
+      SQL
+    )
+    rows.map do |row|
+      row["merchant"]
+    end
   end
 
 

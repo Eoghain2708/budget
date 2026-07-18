@@ -18,16 +18,15 @@ class CLI
   # @param argv [Array<String>]
   def run(argv)
     command = argv.shift
+    
 
     case command.downcase.strip
     when "transaction", "trans"
       Commands::AddTransaction.new(@bs, @rs).run
     when "earn"
-      Commands::AddTransaction.new(@bs, @rs).run(transaction_type: :income)
+      Commands::AddTransaction.new(@bs, @rs).run(nature: :income)
     when "spend"
-      Commands::AddTransaction.new(@bs, @rs).run(transaction_type: :expense)
-    when "from", "f"
-      summary_between(argv)
+      Commands::AddTransaction.new(@bs, @rs).run(nature: :expense)
     when "month"
       date = PeriodDefiner.define_month(argv.first)
       Commands::MonthlySummary.new(@bs, @rs).run(date)

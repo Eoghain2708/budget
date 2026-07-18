@@ -44,6 +44,11 @@ class BudgetService
     @categories.all
   end
 
+  # @return [Category]
+  def find_category_by_title(category_title)
+    @categories.find_by_title(category_title)
+  end
+
   def add_expense(price:, category:,  **options)
     return nil unless category
     transaction = Transaction.new(
@@ -104,6 +109,9 @@ class BudgetService
     @transactions.delete(transaction_id)
   end
 
-
+  # @return [Array<String>]
+  def merchants
+    @categories.merchants
+  end
 
 end

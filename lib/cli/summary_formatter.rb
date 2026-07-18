@@ -155,20 +155,30 @@ class SummaryFormatter
 
   # @return [Void]
   def print_net_gain_at_glance
-    puts PASTEL.bold.bright_cyan(" - Total income: #{PASTEL.bold.bright_green(@summary[:total_income])}")
-    puts PASTEL.bold.bright_blue(" - Total expense: #{PASTEL.bold.bright_red(@summary[:total_expense])}")
+    puts PASTEL.bold.bright_cyan(" - Total income: #{colourise_money_positive(@summary[:total_income])}")
+    puts PASTEL.bold.bright_blue(" - Total expense: #{colourise_money_negative(@summary[:total_expense])}")
     puts PASTEL.bold.bright_magenta(" - Total gain: #{colourise_money(@summary[:net_gain], signed: true)}")
     divide 1
-    puts "#{PASTEL.bold.underline(" - Net gain vs last #{@period}: ")}" " #{PASTEL.bold(colourise_percentage(compare_net_gain_to_previous))}"
+
+    unless @period == :day
+      puts "#{PASTEL.bold.underline(" - Net gain vs last #{@period}: ")}" " #{PASTEL.bold(compare_net_gain_to_previous)}"
+    end
+    if @period == :day
+      puts "#{PASTEL.bold("Yesterday's gain: #{colourise_money(@prev&.dig(:net_gain), signed: true)}")} | #{compare_net_gain_to_previous} from last #{@period} (#{colourise_percentage(compare_net_gain_to_previous_percentage)})"
+    end
     divide 1
     puts PASTEL.bright_green.bold("You earned more than you spent for this #{@period}!") if @summary[:net_gain].positive?
-    puts PASTEL.bright_red.bold("You spent more than you earned for this #{@period}!") if @summary[:net_gain].negative?
+    puts PASTEL.bright_red.bold("You spent more than you earned for this #{@period}.") if @summary[:net_gain].negative?
     puts PASTEL.white.bold "You spent and earned equally for this #{@period}!" if @summary[:net_gain].zero?
     
   end
 
   # @return [Float] - percentage difference between current and previous
   def compare_net_gain_to_previous
+    colourise_money(@summary&.dig(:net_gain) - @prev&.dig(:net_gain), signed: true)
+  end
+
+  def compare_net_gain_to_previous_percentage
     compare_by_percentages(@summary&.dig(:net_gain), @prev&.dig(:net_gain))
   end
 
@@ -180,11 +190,14 @@ class SummaryFormatter
     compare_by_percentages(@summary&.dig(:total_income), @prev&.dig(:total_income))
   end
 
+
+
+
   # @param comparee [Float] - the main number being examined
   # @param comparator [Float] - the number comparee will be compared against
   # @return [Float] - the percentage difference between comparee and comparator
   def compare_by_percentages(comparee, comparator)
-    (((comparee.to_f / comparator.to_f) * 100) - 100).round(2)
+    (((comparee - comparator) / comparator.abs) * 100).round(2)
   end
 
   # @param percentage [Float]

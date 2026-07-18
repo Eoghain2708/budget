@@ -43,6 +43,10 @@ module Prompts
     end
 
     # @return [String]
+    def select_merchant(options)
+      @prompt.select("Choose a merchant", options)
+    end
+
     def get_merchant
       @prompt.ask("Enter the merchant's name")
     end

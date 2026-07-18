@@ -5,6 +5,7 @@ require "date"
 require_relative "summary_formatter"
 require_relative "../helpers/date_helper"
 
+
 module Commands
 
   PROMPT = TTY::Prompt.new
@@ -51,13 +52,28 @@ module Commands
       @category_prompts = Prompts::CategoryPrompts.new(PROMPT, PASTEL)
     end
 
-    def run(transaction_type: nil)
-      unless transaction_type
-        nature = @transaction_prompts.get_nature.to_sym
-        transaction_type = nature
+    def run(nature: nil, date: nil, price: nil, category: nil, merchant: nil)
+      
+      category = @bs.find_category_by_title(category) if category
+      category ||= get_category
+     
+      if category.title.strip.downcase == "work"
+        merchant = "Omniplex Cinemas"
       end
+      
+      merchant ||= get_merchant
 
-      categories = @bs.get_all_categories
+      date = DateHelper.parse_arg(date) if date
+      date ||= Date.today
+      
+      price ||= @transaction_prompts.get_price.to_f
+
+      @bs.add_transaction(price: price, category: category, merchant: merchant, nature: nature)
+    end
+
+    private
+    def get_category
+       categories = @bs.get_all_categories
 
       if categories.empty?
         puts PASTEL.bright_red "No categories found! Create one now."
@@ -70,6 +86,7 @@ module Commands
           value: cat
         }
       end
+      
       choices << {
         name: PASTEL.bright_green("+Add a category"),
         value: :add_category
@@ -82,16 +99,22 @@ module Commands
       else 
         category = choice
       end
+      category
+    end
 
-      if category.title.strip.downcase == "work"
-        merchant = "Omniplex Cinemas"
-      else 
-        merchant = @transaction_prompts.get_merchant
-      end
-      
-      amount = @transaction_prompts.get_price.to_f
-
-      @bs.add_transaction(price: amount, category: category, merchant: merchant, nature: transaction_type)
+    def get_merchant
+       merchants = @bs.merchants 
+        merchants << {
+          name: "#{PASTEL.bright_green "+New merchant"}",
+          value: :add_merchant
+        }
+        choice = @transaction_prompts.select_merchant(merchants)
+        if choice == :add_merchant
+          merchant = @transaction_prompts.get_merchant
+        else 
+          merchant = choice
+        end
+        merchant
     end
   end
 
