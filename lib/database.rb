@@ -4,11 +4,12 @@ require "fileutils"
 # Database class used to create or retrieve a connection with the SQLite database
 class Database
 
-  DB_PATH = File.expand_path("../../db/budget.db", __dir__)
+  APP_DIR = File.join(Dir.home, ".local", "share", "budget")
+  DB_PATH = File.join(APP_DIR, "budget.db")
 
   def self.connection
-    dirname = File.dirname(DB_PATH)
-    FileUtils.mkdir_p(dirname)
+    FileUtils.mkdir_p(APP_DIR)
+
     # [SQLite3::Database]
     @connection ||= begin
     db = SQLite3::Database.new(DB_PATH)
