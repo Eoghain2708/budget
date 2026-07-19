@@ -28,16 +28,29 @@ class CategoryRepository
 
 
 
-  # @param name [String]
+  # @param title [String]
   # @return [Category?]
   def find_by_title(title)
     build_category(@db.get_first_row(
       <<~SQL,
         SELECT *
         FROM categories
-        WHERE title LIKE "%?%"
+        WHERE lower(title) = ?
       SQL
-      [title]
+      [title.downcase]
+    ))
+  end
+
+  # @param title [String]
+  # @return [Category]
+  def search_by_title(title)
+    build_category(@db.get_first_row(
+      <<~SQL,
+        SELECT *
+        FROM categories
+        WHERE title LIKE ?
+      SQL
+      ["%#{title}%"]
     ))
   end
 

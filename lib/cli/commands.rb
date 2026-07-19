@@ -60,6 +60,8 @@ module Commands
       if category.title.strip.downcase == "work"
         merchant = "Omniplex Cinemas"
       end
+
+      nature = nature.to_sym if nature ||= @transaction_prompts.get_nature
       
       merchant ||= get_merchant
 
@@ -78,8 +80,9 @@ module Commands
       if categories.empty?
         puts PASTEL.bright_red "No categories found! Create one now."
         AddCategory.new(@bs).run
+        categories = @bs.get_all_categories
       end
-      
+
       choices = categories.map do |cat|
         {
           name: PASTEL.decorate(cat.title, cat.colour.to_sym),
@@ -127,11 +130,12 @@ module Commands
     end
 
     # @param date [Date]
-    def run(date)
+    # @param options [Hash]
+    def run(date, options=nil)
       return {} unless date
       summary = @rs.weekly_summary(date)
       last_week_summary = @rs.weekly_summary(date - 7)
-      SummaryFormatter.new(summary, last_week_summary, period: :week).format
+      SummaryFormatter.new(summary, last_week_summary, period: :week).format(options: options)
     end
   end
 
@@ -144,11 +148,12 @@ module Commands
     end
 
     # @param date [Date]
-    def run(date)
+    # @param options [Hash]
+    def run(date, options=nil)
       return {} unless date
       summary = @rs.monthly_summary(date)
       last_month_summary = @rs.monthly_summary(date << 1)
-      SummaryFormatter.new(summary, last_month_summary, period: :month).format
+      SummaryFormatter.new(summary, last_month_summary, period: :month).format(options: options)
     end
   end
 
@@ -161,11 +166,12 @@ module Commands
     end
 
     # @param date [Date]
-    def run(date)
+    # @param options [Hash]
+    def run(date, options=nil)
       return {} unless date
       summary = @rs.daily_summary(date)
       yesterday_summary = @rs.daily_summary(date - 1)
-      SummaryFormatter.new(summary, yesterday_summary, period: :day).format
+      SummaryFormatter.new(summary, yesterday_summary, period: :day).format(options: options)
     end
   end
 

@@ -18,13 +18,16 @@ class SummaryFormatter
   end
 
 
-  def format(message="Report for #{@period}")
+  # @param message [String] defaulted to a reasonable value but can be changed - "Report for week/day/month"
+  # @param options [Hash] - options for formatting. Can be nil and indeed is by default. Use &.dig for all option parsing rather than accessing directly.
+  def format(message="Report for #{@period}", options: nil)
     divide
     puts "#{PASTEL.bold message}: #{PASTEL.yellow.bold(@summary[:from].strftime("%A %d %B %Y"))} => #{PASTEL.yellow.bold(@summary[:to].strftime("%A %d %B %Y"))}"
     print_net_gain_at_glance
+    return if options&.dig(:short)
     format_summary(message)
-    format_categories()
-    format_merchants()
+    format_categories() unless @summary&.dig(:category_breakdown).empty?
+    format_merchants() unless @summary&.dig(:merchant_breakdown).empty?
   end
 
  
@@ -164,7 +167,7 @@ class SummaryFormatter
       puts "#{PASTEL.bold.underline(" - Net gain vs last #{@period}: ")}" " #{PASTEL.bold(compare_net_gain_to_previous)}"
     end
     if @period == :day
-      puts "#{PASTEL.bold("Yesterday's gain: #{colourise_money(@prev&.dig(:net_gain), signed: true)}")} | #{compare_net_gain_to_previous} from last #{@period} (#{colourise_percentage(compare_net_gain_to_previous_percentage)})"
+      puts "#{PASTEL.bold("Previous' gain: #{colourise_money(@prev&.dig(:net_gain), signed: true)}")} | #{compare_net_gain_to_previous} from last #{@period} | #{colourise_percentage(compare_net_gain_to_previous_percentage)}"
     end
     divide 1
     puts PASTEL.bright_green.bold("You earned more than you spent for this #{@period}!") if @summary[:net_gain].positive?
@@ -197,6 +200,7 @@ class SummaryFormatter
   # @param comparator [Float] - the number comparee will be compared against
   # @return [Float] - the percentage difference between comparee and comparator
   def compare_by_percentages(comparee, comparator)
+    return 0.0 if comparator == 0
     (((comparee - comparator) / comparator.abs) * 100).round(2)
   end
 

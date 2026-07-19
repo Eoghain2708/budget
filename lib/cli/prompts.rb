@@ -31,13 +31,13 @@ module Prompts
      @pastel = pastel
     end
     
-    # @return [String]
+    # @return [Symbol]
     def get_nature
-      @prompt.select("Is this an outgoing or incoming amount?", %w(expense income))
+      @prompt.select("Is this an outgoing or incoming amount?", %w(expense income)).to_sym
     end
 
     # @param categories [Array<String>]
-    # @return [String]
+    # @return [Category]
     def get_category(categories)
       @prompt.select("Choose a category", categories)
     end
