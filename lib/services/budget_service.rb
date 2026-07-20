@@ -49,6 +49,12 @@ class BudgetService
     @categories.find_by_title(category_title)
   end
 
+  # @return [Category]
+  # uses LIKE instead of direct matching in db
+  def search_by_title(category_title)
+    @categories.search_by_title(category_title)
+  end
+
   def add_expense(price:, category:,  **options)
     return nil unless category
     transaction = Transaction.new(

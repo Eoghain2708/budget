@@ -5,7 +5,7 @@ require "date"
 require_relative "summary_formatter"
 require_relative "../helpers/date_helper"
 
-
+# Any class/command which needs the Helper class should define it in their constructor
 module Commands
 
   PROMPT = TTY::Prompt.new
@@ -42,6 +42,23 @@ module Commands
     end
   end
 
+  class DeleteCategory
+    # @param bs [BudgetService]
+    def initialize(bs)
+      @bs = bs
+      @transaction_prompts = Prompts::TransactionPrompts.new(PROMPT, PASTEL)
+      @helper = Helpers.new(bs, transaction_prompts: @transaction_prompts)
+    end
+
+    def run
+      category = @helper.get_category
+      @bs.delete_category(category.id)
+    end
+  end
+
+
+
+
   class AddTransaction
     # @param bs [BudgetService]
     # @param rs [ReportService]
@@ -50,12 +67,13 @@ module Commands
       @rs = rs
       @transaction_prompts = Prompts::TransactionPrompts.new(PROMPT, PASTEL)
       @category_prompts = Prompts::CategoryPrompts.new(PROMPT, PASTEL)
+      @helper = Helpers.new(@bs, rs: @rs, transaction_prompts: @transaction_prompts, category_prompts: @category_prompts)
     end
 
     def run(nature: nil, date: nil, price: nil, category: nil, merchant: nil)
       
       category = @bs.find_category_by_title(category) if category
-      category ||= get_category
+      category ||= @helper.get_category
      
       if category.title.strip.downcase == "work"
         merchant = "Omniplex Cinemas"
@@ -63,7 +81,7 @@ module Commands
 
       nature = nature.to_sym if nature ||= @transaction_prompts.get_nature
       
-      merchant ||= get_merchant
+      merchant ||= @helper.get_merchant
 
       date = DateHelper.parse_arg(date) if date
       date ||= Date.today
@@ -71,53 +89,6 @@ module Commands
       price ||= @transaction_prompts.get_price.to_f
 
       @bs.add_transaction(price: price, category: category, merchant: merchant, nature: nature)
-    end
-
-    private
-    def get_category
-       categories = @bs.get_all_categories
-
-      if categories.empty?
-        puts PASTEL.bright_red "No categories found! Create one now."
-        AddCategory.new(@bs).run
-        categories = @bs.get_all_categories
-      end
-
-      choices = categories.map do |cat|
-        {
-          name: PASTEL.decorate(cat.title, cat.colour.to_sym),
-          value: cat
-        }
-      end
-      
-      choices << {
-        name: PASTEL.bright_green("+Add a category"),
-        value: :add_category
-      }
-
-      choice = @transaction_prompts.get_category(choices)
-
-      if choice == :add_category
-        category = AddCategory.new(@bs).run
-      else 
-        category = choice
-      end
-      category
-    end
-
-    def get_merchant
-       merchants = @bs.merchants 
-        merchants << {
-          name: "#{PASTEL.bright_green "+New merchant"}",
-          value: :add_merchant
-        }
-        choice = @transaction_prompts.select_merchant(merchants)
-        if choice == :add_merchant
-          merchant = @transaction_prompts.get_merchant
-        else 
-          merchant = choice
-        end
-        merchant
     end
   end
 
@@ -172,6 +143,71 @@ module Commands
       summary = @rs.daily_summary(date)
       yesterday_summary = @rs.daily_summary(date - 1)
       SummaryFormatter.new(summary, yesterday_summary, period: :day).format(options: options)
+    end
+  end
+
+
+
+
+  # A helper class for things like get_category, get_merchant etc so that they can be used across multiple commands
+  class Helpers
+
+    # @param bs [BudgetService]
+    # @param transaction_prompts [Prompts::TransactionPrompts]
+    # @param category_prompts [Prompts::CategoryPrompts]
+    # @param rs [ReportService]
+    def initialize(bs, transaction_prompts: nil, category_prompts: nil, rs: nil)
+      @bs = bs
+      @rs = rs
+      @transaction_prompts = transaction_prompts
+      @category_prompts = category_prompts
+    end
+
+    def get_category
+       categories = @bs.get_all_categories
+
+      if categories.empty?
+        puts PASTEL.bright_red "No categories found! Create one now."
+        AddCategory.new(@bs).run
+        categories = @bs.get_all_categories
+      end
+
+      choices = categories.map do |cat|
+        {
+          name: PASTEL.decorate(cat.title, cat.colour.to_sym),
+          value: cat
+        }
+      end
+      
+      choices << {
+        name: PASTEL.bright_green("+ Add a category"),
+        value: :add_category
+      }
+
+      choice = @transaction_prompts.get_category(choices)
+
+      if choice == :add_category
+        category = AddCategory.new(@bs).run
+      else 
+        category = choice
+      end
+      category
+    end
+
+    def get_merchant
+       merchants = @bs.merchants
+
+        merchants << {
+          name: "#{PASTEL.bright_green.bold "+ New merchant"}",
+          value: :add_merchant
+        }
+        choice = @transaction_prompts.select_merchant(merchants)
+        if choice == :add_merchant
+          merchant = @transaction_prompts.get_merchant
+        else 
+          merchant = choice
+        end
+        merchant
     end
   end
 

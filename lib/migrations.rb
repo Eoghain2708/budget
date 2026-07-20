@@ -24,6 +24,11 @@ class Migrations
     )
   end
 
+  def self.clear_database(db)
+    clear_transactions(db)
+    clear_categories(db)
+  end
+
 
   private 
   # @param db [SQLite3::Database]
@@ -50,6 +55,7 @@ class Migrations
 
         FOREIGN_KEY category_id
           REFERENCES categories(id)
+          ON DELETE CASCADE
       );
     SQL
   end

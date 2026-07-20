@@ -20,6 +20,7 @@ module Prompts
       @prompt.select("Select a colour", Category::ALLOWED_COLOURS)
     end
 
+    
 
   end
 
