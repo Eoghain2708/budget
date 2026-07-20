@@ -130,7 +130,7 @@ class CategoryRepository
     @db.execute(
       <<~SQL,
         UPDATE categories
-        SET name = ?, colour = ?
+        SET title = ?, colour = ?
         WHERE id = ?
       SQL
       [category.title, category.colour, category.id]

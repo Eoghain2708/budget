@@ -16,6 +16,16 @@ module OptionWizard
     params
   end
 
+  # @param argv [Array<String>]
+  # @return [Hash<Symbol, String>]
+  def self.parse_transaction_delete_opts(argv)
+    params = {}
+    OptionParser.new do |opts|
+      opts.on('--to STRING', String)
+    end.parse!(into: params)
+    params
+  end
+
   def self.parse_preset_nature_opts(argv)
     opts = parse_transaction_opts(argv)
     opts.delete(:nature) if opts[:nature]

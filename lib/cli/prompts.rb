@@ -20,6 +20,14 @@ module Prompts
       @prompt.select("Select a colour", Category::ALLOWED_COLOURS)
     end
 
+    def get_wants_to_change_title
+      @prompt.yes?("Do you want to change title?")
+    end
+
+    def get_wants_to_change_colour
+      @prompt.yes?("Do you want to change colour?")
+    end
+
     
 
   end
@@ -55,6 +63,13 @@ module Prompts
     # @return [String]
     def get_price
       @prompt.ask("Enter the value of the transaction in pounds (##.##)")
+    end
+
+
+    # @param choices [Array<String>]
+    # @return [Transaction]
+    def get_transaction(choices)
+      @prompt.select("Choose a transaction", choices)
     end
 
   end

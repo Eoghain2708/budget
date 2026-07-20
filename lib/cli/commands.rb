@@ -56,6 +56,32 @@ module Commands
     end
   end
 
+  class EditCategory
+
+    # @param bs [BudgetService]
+    def initialize(bs)
+      @bs = bs
+      @category_prompts = Prompts::CategoryPrompts.new(PROMPT, PASTEL)
+      @transaction_prompts = Prompts::TransactionPrompts.new(PROMPT, PASTEL)
+      @helper = Helpers.new(bs, transaction_prompts: @transaction_prompts, category_prompts: @category_prompts)
+    end
+    
+    def run
+      category = @helper.get_category
+      if @category_prompts.get_wants_to_change_title
+        new_title = @category_prompts.get_title
+        category.title = new_title
+      end
+
+      if @category_prompts.get_wants_to_change_colour
+        new_colour = @category_prompts.get_colour
+        category.colour = new_colour
+      end
+
+      @bs.edit_category(category, new_title: new_title, new_colour: new_colour)
+    end
+  end
+
 
 
 
@@ -91,6 +117,44 @@ module Commands
       @bs.add_transaction(price: price, category: category, merchant: merchant, nature: nature)
     end
   end
+
+
+  class DeleteTransaction
+    # @param bs [BudgetService]
+    # @param rs [ReportService]
+    def initialize(bs, rs)
+      @bs = bs
+      @rs = rs
+      @transaction_prompts = Prompts::TransactionPrompts.new(PROMPT, PASTEL)
+    end
+
+    def run(from:, to: from)
+      return unless from
+
+      transactions = @bs.find_transactions_between(from: from, to: to)
+      choices = transactions.map do |t|
+        {
+          name: "#{t.date} | #{t.category} | #{t.nature} | #{t.merchant} | #{t.price}",
+          value: t.id
+        }
+      end
+      choice = @transaction_prompts.get_transaction(choices)
+      pp choice
+      @bs.delete_transaction(choice)
+
+
+    end
+  end
+
+
+
+
+
+
+
+
+
+
 
   class WeeklySummary
     # @param bs [BudgetService]

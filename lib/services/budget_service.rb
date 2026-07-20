@@ -1,3 +1,5 @@
+require "date"
+
 class BudgetService
   # @param categories [CategoryRepository]
   # @param transactions [TransactionRepository]
@@ -20,12 +22,11 @@ class BudgetService
     @categories.save(category)
   end
 
-  # @param title [String] title of Category being edited
+  # @param category [Category] title of Category being edited
   # @param new_title [String] new title - default nil
   # @param new_colour [String] new colour - default nil
   # @return [Category]
-  def edit_category(title, new_title:, new_colour:) 
-    category = @categories.find_by_title(title)
+  def edit_category(category, new_title: nil, new_colour: nil) 
     return nil unless category
 
     category.title = new_title if new_title
@@ -55,28 +56,11 @@ class BudgetService
     @categories.search_by_title(category_title)
   end
 
-  def add_expense(price:, category:,  **options)
-    return nil unless category
-    transaction = Transaction.new(
-      price: price,
-      category: category,
-      nature: :expense,
-      **options
-    )
 
-    @transactions.save(transaction)
-  end
-
-  def add_income(price:, category:, **options)
-    return nil unless category
-    transaction = Transaction.new(
-      price: price,
-      category: category,
-      nature: :income,
-      **options
-    )
-
-    @transactions.save(transaction)
+  # @param id [Integer]
+  # @return [Transaction]
+  def find_transaction(id)
+    @transactions.find(id)
   end
 
   def add_transaction(price:, category:, merchant:, nature:)
@@ -113,6 +97,13 @@ class BudgetService
   # @return [Boolean]
   def delete_transaction(transaction_id)
     @transactions.delete(transaction_id)
+  end
+
+
+  # @param from [Date]
+  # @param to [Date]
+  def find_transactions_between(from: Date.today, to: from)
+    @transactions.find_between(from: from, to: to)
   end
 
   # @return [Array<String>]
