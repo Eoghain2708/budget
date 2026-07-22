@@ -18,7 +18,7 @@ module OptionWizard
 
   # @param argv [Array<String>]
   # @return [Hash<Symbol, String>]
-  def self.parse_transaction_delete_opts(argv)
+  def self.parse_transaction_delete_and_edit_opts(argv)
     params = {}
     OptionParser.new do |opts|
       opts.on('--to STRING', String)

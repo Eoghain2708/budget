@@ -4,6 +4,7 @@ class PeriodDefiner
 
   # @param date [String]
   def self.define_week(date)
+    raise ArgumentError, "Date cannot be nil" unless date
     stripped = date.strip.downcase
     case stripped
     when "thisweek", "tweek", "tw"
@@ -17,6 +18,7 @@ class PeriodDefiner
 
   # @param date [String]
   def self.define_day(date)
+    raise ArgumentError, "Date cannot be nil" unless date
     stripped = date.strip.downcase
     case stripped
     when "today", "tod", "td"
@@ -44,6 +46,7 @@ class PeriodDefiner
 
   # @param date [String]
   def self.define_month(date)
+    raise ArgumentError, "Date cannot be nil" unless date
     stripped = date.strip.downcase
     case stripped
     when "january", "jan", "1"

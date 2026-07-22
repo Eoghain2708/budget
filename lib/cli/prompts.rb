@@ -65,11 +65,36 @@ module Prompts
       @prompt.ask("Enter the value of the transaction in pounds (##.##)")
     end
 
+    # @return [String]
+    def get_date
+      @prompt.ask("Enter the new date (YY-mm-DD, or use a shorthand date)")
+    end
+
 
     # @param choices [Array<String>]
     # @return [Transaction]
     def get_transaction(choices)
       @prompt.select("Choose a transaction", choices)
+    end
+
+    def get_wants_to_change_category
+      @prompt.yes?("Would you like to change the category?")
+    end
+
+    def get_wants_to_change_date
+      @prompt.yes?("Would you like to change date?")
+    end
+
+    def get_wants_to_change_merchant
+      @prompt.yes?("Would you like to change merchant?")
+    end
+
+    def get_wants_to_change_price
+      @prompt.yes?("Would you like to change the price of this transaction?")
+    end
+
+    def get_wants_to_change_nature
+      @prompt.yes?("Would you like to change the nature (expense/income)?")
     end
 
   end

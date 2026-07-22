@@ -77,18 +77,19 @@ class BudgetService
 
   # @param id [Integer] - ID of transaction being edited
   # @param new_price [Float]
-  # @param new_category_title [String]
+  # @param new_category [Category]
   # @param new_date [Date]
   # @param new_merchant [String]
   # @param new_nature [Symbol]
   # @return [Transaction]
-  def edit_transaction(id, new_price: nil, new_category_title: nil, new_date: nil, new_merchant: nil, new_nature: nil)
+  def edit_transaction(id, new_price: nil, new_category: nil, new_date: nil, new_merchant: nil, new_nature: nil)
     transaction = @transactions.find(id)
-    new_category = @categories.find_by_title(title)
+    pp transaction
     transaction.price = new_price if new_price
     transaction.category = new_category if new_category
     transaction.date = new_date if new_date
     transaction.merchant = new_merchant if new_merchant
+    transaction.nature = new_nature if new_nature
 
     @transactions.save(transaction)
   end

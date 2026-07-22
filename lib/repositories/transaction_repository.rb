@@ -31,6 +31,7 @@ class TransactionRepository
 
     return nil unless row
 
+    build_transaction(row)
   end
 
   # @param category [Category]
@@ -107,7 +108,7 @@ class TransactionRepository
   def delete(id)
     @db.execute(
       <<~SQL,
-        DELETE FROM categories
+        DELETE FROM transactions
         WHERE id = ?
       SQL
       [id]
