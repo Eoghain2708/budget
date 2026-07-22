@@ -5,6 +5,7 @@ require "date"
 require_relative "summary_formatter"
 require_relative "../helpers/date_helper"
 require_relative "../helpers/period_definer"
+require_relative "../models/category"
 
 # Any class/command which needs the Helper class should define it in their constructor
 module Commands
@@ -110,7 +111,7 @@ module Commands
 
         nature = nature.to_sym if nature ||= @transaction_prompts.get_nature
         
-        merchant ||= @helper.get_merchant
+        merchant ||= @helper.get_recent_merchants(category)
 
         date = DateHelper.parse_arg(date) if date
         date ||= Date.today
@@ -163,7 +164,7 @@ module Commands
         end
 
         if @transaction_prompts.get_wants_to_change_merchant
-          new_merchant = @helper.get_merchant
+          new_merchant = @helper.choose_merchant
         end
 
         if @transaction_prompts.get_wants_to_change_price
@@ -238,7 +239,7 @@ module Commands
   end
 
 
-  # A helper class for things like get_category, get_merchant etc so that they can be used across multiple commands
+  # A helper class for things like get_category, choose_merchant etc so that they can be used across multiple commands
   class Helpers
 
     # @param bs [BudgetService]
@@ -283,20 +284,49 @@ module Commands
       category
     end
 
-    def get_merchant
-       merchants = @bs.merchants
+    def choose_merchant
+      merchants = @bs.merchants.map do |merchant|
+        {
+        name: PASTEL.public_send(Category::ALLOWED_COLOURS.sample.to_sym).bold(merchant),
+        value: merchant
+        }
+      end
 
-        merchants << {
+      merchants << {
           name: "#{PASTEL.bright_green.bold "+ New merchant"}",
           value: :add_merchant
+      }
+      choice = @transaction_prompts.select_merchant(merchants)
+      if choice == :add_merchant
+        merchant = @transaction_prompts.get_merchant
+      else 
+        merchant = choice
+      end
+      merchant
+    end
+
+    def get_recent_merchants(category)
+      merchants = @bs.recent_merchants(category).map do |merchant|
+        {
+        name: PASTEL.public_send(Category::ALLOWED_COLOURS.sample.to_sym).bold(merchant),
+        value: merchant
         }
-        choice = @transaction_prompts.select_merchant(merchants)
-        if choice == :add_merchant
-          merchant = @transaction_prompts.get_merchant
-        else 
-          merchant = choice
-        end
-        merchant
+      end
+      merchants << {
+        name: "#{PASTEL.bright_cyan.bold "- Other"}",
+        value: :other
+      }
+      merchants << {
+        name: "#{PASTEL.bright_green.bold "+ New merchant"}",
+        value: :add_merchant
+      }
+
+      choice = @transaction_prompts.select_merchant(merchants)
+      if choice == :other
+        choose_merchant
+      elsif choice == :add_merchant
+        @transaction_prompts.get_merchant
+      end
     end
 
     # @return [Transaction | nil]

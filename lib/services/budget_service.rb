@@ -84,7 +84,6 @@ class BudgetService
   # @return [Transaction]
   def edit_transaction(id, new_price: nil, new_category: nil, new_date: nil, new_merchant: nil, new_nature: nil)
     transaction = @transactions.find(id)
-    pp transaction
     transaction.price = new_price if new_price
     transaction.category = new_category if new_category
     transaction.date = new_date if new_date
@@ -109,7 +108,13 @@ class BudgetService
 
   # @return [Array<String>]
   def merchants
-    @categories.merchants
+    @transactions.merchants
+  end
+
+  # @param category [Category]
+  # @return [Array<String>]
+  def recent_merchants(category)
+    @transactions.get_recent_merchants(category)
   end
 
 end

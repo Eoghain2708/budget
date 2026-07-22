@@ -109,7 +109,7 @@ class TransactionRepository
     @db.execute(
       <<~SQL,
         DELETE FROM transactions
-        WHERE id = ?
+        WHERE id = ?;
       SQL
       [id]
     )
@@ -129,6 +129,38 @@ class TransactionRepository
     rows
   end
 
+  # @return [Array<String>]
+  def merchants
+    rows = @db.execute(
+      <<~SQL,
+        SELECT DISTINCT merchant
+        FROM transactions
+        ORDER BY merchant;
+      SQL
+    )
+    rows.map do |row|
+      row["merchant"]
+    end
+  end
+
+
+  # @param category [Category]
+  # @return [Array<String>] string of merchants associated with that category
+  def get_recent_merchants(category)
+    rows = @db.execute(
+      <<~SQL,
+        SELECT DISTINCT merchant FROM transactions
+        WHERE category_id = ?
+        ORDER BY date DESC
+        LIMIT 5;
+      SQL
+      [category.id]
+    )
+
+    rows.map do |row|
+      row["merchant"]
+    end
+  end
 
   
   private

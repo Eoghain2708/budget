@@ -2,22 +2,7 @@ require "date"
 require_relative "../helpers/date_helper"
 
 class ReportService
-  MONTHS = {
-    january: 1, jan: 1,
-    february: 2, feb: 2,
-    march: 3, mar: 3,
-    april: 4, apr: 4,
-    may: 5,
-    june: 6, jun: 6,
-    july: 7, jul: 7,
-    august: 8, aug: 8,
-    september: 9, sep: 9,
-    october: 10, oct: 10,
-    november: 11, nov: 11,
-    december: 12, dec: 12
-  }.freeze
-
-
+  
   # @param categories [CategoryRepository]
   # @param transactions [TransactionRepository]
   # @return BudgetService
@@ -27,23 +12,16 @@ class ReportService
     @transactions = transactions
   end
 
-  # @param month [String]
+  # @param from [Date]
   # @param year [Integer]
   # @return [Array<Transaction>]
-  def monthly_summary(month, year)
-    month = month.to_sym
-    raise ArgumentError, "Invalid date" unless MONTHS.key?(month) && year <= Date.today.year
-    from = Date.new(year, MONTHS[month], 1)
+  def monthly_summary(from)
+    to = Date.new(from.year, from.month, -1)
     
-    if Date.today.month == MONTHS[month]
-      to = Date.today
-      transactions =  @transactions.find_between(from: from, to: to)
-    else 
-      to = Date.new(year, MONTHS[month], -1)
-      transactions =  @transactions.find_between(from: from, to: to)
-    end
-
-    build_summary(transactions, from: from, to: to)
+    transactions =  @transactions.find_between(from: from, to: to)
+    summary = build_summary(transactions, from: from, to: to)
+    pp summary
+    summary
   end
 
   # Returns all transactions within a weekly period of Monday => Sunday
@@ -147,7 +125,7 @@ class ReportService
         {
           count: group.size,
           total: total,
-          percentage: (totals[nature].zero? ? 0.0 : total / totals[nature]) * 100
+          percentage: (totals[nature].zero? ? 0.0 : total.to_f / totals[nature]) * 100
         }
       end
     end
@@ -169,7 +147,7 @@ class ReportService
         {
           count: group.size,
           total: total,
-          percentage: (totals[nature].zero? ? 0.0 : total / totals[nature]) * 100
+          percentage: (totals[nature].zero? ? 0.0 : total.to_f / totals[nature]) * 100
         }
       end
     end

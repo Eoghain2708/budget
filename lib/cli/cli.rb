@@ -21,12 +21,20 @@ class CLI
   # @param argv [Array<String>]
   def run(argv)
     command = argv.shift
-
+    unless command 
+      errorise("You must include a command.")
+      print_available_commands
+      return
+    end
     case command.downcase.strip
 
     # adding transactions
     when "transaction", "trans"
       action = argv&.shift
+      unless action
+        errorise("You must include an action: add | delete | edit")
+        return 
+      end
       case action.downcase.strip
 
       when "add"
@@ -63,24 +71,40 @@ class CLI
     # summaries
     when "month"
       options = OptionWizard.parse_summary_opts(argv)
+      if argv.empty?
+        print_date_error
+        return 
+      end
       date = PeriodDefiner.define_month(argv.first)
       Commands::Summaries::MonthlySummary.new(@bs, @rs).run(date, **options)
 
 
     when "week"
       options = OptionWizard.parse_summary_opts(argv)
+      if argv.empty?
+        print_date_error
+        return
+      end
       date = PeriodDefiner.define_week(argv.first)
       Commands::Summaries::WeeklySummary.new(@bs, @rs).run(date, **options)
 
 
     when "day"
       options = OptionWizard.parse_summary_opts(argv)
+      if argv.empty?
+        print_date_error
+        return
+      end
       date = PeriodDefiner.define_day(argv.first)
       Commands::Summaries::DailySummary.new(@bs, @rs).run(date, **options)
 
     
     when "category", "cat"
       action = argv&.shift
+      unless action
+        errorise "You must include an action: add | all | delete | edit"
+        return
+      end
       case action.strip.downcase
       when "add"
         Commands::Categories::AddCategory.new(@bs).run
@@ -137,6 +161,17 @@ class CLI
     end
 
     { from: from, to: to }
+  end
+
+
+  # @param string [String]
+  def errorise(string)
+    puts PASTEL.bright_red.bold(string)
+  end
+
+  # @return [String]
+  def print_date_error
+    errorise("You must include a valid date")
   end
 
 end

@@ -94,22 +94,6 @@ class CategoryRepository
     return true
   end
 
-  # @return [Array<String>]
-  def merchants
-    rows = @db.execute(
-      <<~SQL,
-        SELECT DISTINCT merchant
-        FROM transactions
-        ORDER BY merchant;
-      SQL
-    )
-    rows.map do |row|
-      row["merchant"]
-    end
-  end
-
-
-
   private
   # @param [Hash] row 
   # @param example: {id => Integer, title => String, colour => String}

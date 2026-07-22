@@ -162,13 +162,8 @@ class SummaryFormatter
     puts PASTEL.bold.bright_blue(" - Total expense: #{colourise_money_negative(@summary[:total_expense])}")
     puts PASTEL.bold.bright_magenta(" - Total gain: #{colourise_money(@summary[:net_gain], signed: true)}")
     divide 1
-
-    unless @period == :day
-      puts "#{PASTEL.bold.underline(" - Net gain vs last #{@period}: ")}" " #{PASTEL.bold(compare_net_gain_to_previous)}"
-    end
-    if @period == :day
-      puts "#{PASTEL.bold("Previous' gain: #{colourise_money(@prev&.dig(:net_gain), signed: true)}")} | #{compare_net_gain_to_previous} from last #{@period} | #{colourise_percentage(compare_net_gain_to_previous_percentage)}"
-    end
+    puts "#{PASTEL.bold " - Last #{@period}'s net gain: #{colourise_money(@prev&.dig(:net_gain))}"}"
+    puts "#{PASTEL.bold.underline(" - Net gain vs last #{@period}: ")}" " #{PASTEL.bold(compare_net_gain_to_previous)}" 
     divide 1
     puts PASTEL.bright_green.bold("You earned more than you spent for this #{@period}!") if @summary[:net_gain].positive?
     puts PASTEL.bright_red.bold("You spent more than you earned for this #{@period}.") if @summary[:net_gain].negative?
@@ -201,7 +196,7 @@ class SummaryFormatter
   # @return [Float] - the percentage difference between comparee and comparator
   def compare_by_percentages(comparee, comparator)
     return 0.0 if comparator == 0
-    (((comparee - comparator) / comparator.abs) * 100).round(2)
+    (((comparee - comparator).to_f / comparator.abs) * 100).round(2)
   end
 
   # @param percentage [Float]
