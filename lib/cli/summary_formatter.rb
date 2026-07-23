@@ -44,7 +44,7 @@ class SummaryFormatter
       header: [" Data ", " This #{@period} ", " Previous #{@period} "]
     )
 
-    puts ""
+    puts " "
     puts PASTEL.bold("General Summary")
     puts PASTEL.bright_cyan.bold summary_table.render(:unicode, alignments: [:left, :right, :right])
     divide
