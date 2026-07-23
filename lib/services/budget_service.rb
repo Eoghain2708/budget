@@ -1,3 +1,5 @@
+require "date"
+
 class BudgetService
   # @param categories [CategoryRepository]
   # @param transactions [TransactionRepository]
@@ -20,12 +22,11 @@ class BudgetService
     @categories.save(category)
   end
 
-  # @param title [String] title of Category being edited
+  # @param category [Category] title of Category being edited
   # @param new_title [String] new title - default nil
   # @param new_colour [String] new colour - default nil
   # @return [Category]
-  def edit_category(title, new_title:, new_colour:) 
-    category = @categories.find_by_title(title)
+  def edit_category(category, new_title: nil, new_colour: nil) 
     return nil unless category
 
     category.title = new_title if new_title
@@ -39,11 +40,36 @@ class BudgetService
     @categories.delete(category_id)
   end
 
-  def add_transaction(price:, category_title:, **options)
+  # @return [Array<Category>]
+  def get_all_categories
+    @categories.all
+  end
+
+  # @return [Category]
+  def find_category_by_title(category_title)
+    @categories.find_by_title(category_title)
+  end
+
+  # @return [Category]
+  # uses LIKE instead of direct matching in db
+  def search_by_title(category_title)
+    @categories.search_by_title(category_title)
+  end
+
+
+  # @param id [Integer]
+  # @return [Transaction]
+  def find_transaction(id)
+    @transactions.find(id)
+  end
+
+  def add_transaction(price:, category:, merchant:, nature:)
+    return nil unless category
     transaction = Transaction.new(
       price: price,
       category: category,
-      **options
+      nature: nature,
+      merchant: merchant
     )
 
     @transactions.save(transaction)
@@ -51,17 +77,18 @@ class BudgetService
 
   # @param id [Integer] - ID of transaction being edited
   # @param new_price [Float]
-  # @param new_category_title [String]
+  # @param new_category [Category]
   # @param new_date [Date]
   # @param new_merchant [String]
+  # @param new_nature [Symbol]
   # @return [Transaction]
-  def edit_transaction(id, new_price: nil, new_category_title: nil, new_date: nil, new_merchant: nil)
+  def edit_transaction(id, new_price: nil, new_category: nil, new_date: nil, new_merchant: nil, new_nature: nil)
     transaction = @transactions.find(id)
-    new_category = @categories.find_by_title(title)
     transaction.price = new_price if new_price
     transaction.category = new_category if new_category
     transaction.date = new_date if new_date
     transaction.merchant = new_merchant if new_merchant
+    transaction.nature = new_nature if new_nature
 
     @transactions.save(transaction)
   end
@@ -73,5 +100,21 @@ class BudgetService
   end
 
 
+  # @param from [Date]
+  # @param to [Date]
+  def find_transactions_between(from: Date.today, to: from)
+    @transactions.find_between(from: from, to: to)
+  end
+
+  # @return [Array<String>]
+  def merchants
+    @transactions.merchants
+  end
+
+  # @param category [Category]
+  # @return [Array<String>]
+  def recent_merchants(category)
+    @transactions.get_recent_merchants(category)
+  end
 
 end

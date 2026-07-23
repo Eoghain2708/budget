@@ -2,22 +2,7 @@ require "date"
 require_relative "../helpers/date_helper"
 
 class ReportService
-  MONTHS = {
-    january: 1, jan: 1,
-    february: 2, feb: 2,
-    march: 3, mar: 3,
-    april: 4, apr: 4,
-    may: 5,
-    june: 6, jun: 6,
-    july: 7, jul: 7,
-    august: 8, aug: 8,
-    september: 9, sep: 9,
-    october: 10, oct: 10,
-    november: 11, nov: 11,
-    december: 12, dec: 12
-  }.freeze
-
-
+  
   # @param categories [CategoryRepository]
   # @param transactions [TransactionRepository]
   # @return BudgetService
@@ -27,23 +12,16 @@ class ReportService
     @transactions = transactions
   end
 
-  # @param month [String]
+  # @param from [Date]
   # @param year [Integer]
   # @return [Array<Transaction>]
-  def monthly_summary(month, year)
-    month = month.to_sym
-    raise ArgumentError, "Invalid date" unless MONTHS.key?(month) && year <= Date.today.year
-    from = Date.new(year, MONTHS[month], 1)
+  def monthly_summary(from)
+    to = Date.new(from.year, from.month, -1)
     
-    if Date.today.month == MONTHS[month]
-      to = Date.today
-      transactions =  @transactions.find_between(from: from, to: to)
-    else 
-      to = Date.new(year, MONTHS[month], -1)
-      transactions =  @transactions.find_between(from: from, to: to)
-    end
-
-    build_summary(transactions, from: from, to: to)
+    transactions =  @transactions.find_between(from: from, to: to)
+    summary = build_summary(transactions, from: from, to: to)
+    pp summary
+    summary
   end
 
   # Returns all transactions within a weekly period of Monday => Sunday
@@ -67,45 +45,111 @@ class ReportService
   end
 
 
+  # @param transactions [Array<Transaction>]
+  # @return [Array<Transactions]
+  def find_all_expenses(transactions)
+    result = transactions.select { |t| t.nature == :expense}
+    result
+  end
+
+  # @param transactions [Array<Transaction>]
+  # @return [Array<Transaction>]
+  def find_all_earnings(transactions)
+    result = transactions.select { |t| t.nature == :income }
+    result
+  end
+
+
   private
   # @param transactions [Array<Transaction>]
   # @param from: [Date]
   # @param to: [Date]
+  # @return [Hash] => { 
+  # from: Date, 
+  # to: Date, 
+  # transactions: Array<Transaction>, 
+  # transaction_count: Integer, 
+  # total_spent: Float, 
+  # category_breakdown: Hash,
+  # merchant_breakdown: Hash
+  # }
   def build_summary(transactions, from:, to:)
-    {
+    result = {
       from: from,
       to: to,
       transactions: transactions,
       transaction_count: transactions.size,
-      total_spent: transactions.sum(&:price),
-      category_breakdown: category_breakdown(transactions),
-      merchant_breakdown: merchant_breakdown(transactions),
+      total_expense: transactions.select { |t| t.nature == :expense }.sum(&:price),
+      total_income: transactions.select { |t| t.nature == :income }.sum(&:price),
+      net_gain: (transactions.select { |t| t.nature == :income }.sum(&:price)) - (transactions.select { |t| t.nature == :expense }.sum(&:price)),
+      
     }
+
+    totals = { income: result[:total_income], expense: result[:total_expense] }
+    result[:category_breakdown] = category_breakdown(transactions, totals)
+    result[:merchant_breakdown] = merchant_breakdown(transactions, totals)
+
+    # sort category_breakdown 
+    sorted_category_breakdown = result[:category_breakdown].sort_by do |_, natures|
+      income = natures.dig(:income, :total) || 0
+      expense = natures.dig(:expense, :total) || 0
+      income - expense
+    end.reverse 
+    result[:category_breakdown] = sorted_category_breakdown.to_h
+
+
+    # sort merchant_breakdown
+    sorted_merchant_breakdown = result[:merchant_breakdown].sort_by do |_, natures|
+      income = natures.dig(:income, :total) || 0
+      expense = natures.dig(:expense, :total) || 0
+      income - expense
+    end.reverse 
+    result[:merchant_breakdown] = sorted_merchant_breakdown.to_h
+
+
+    result
   end
 
   # @param transactions [Array<Transaction>]
-  # @return [Hash] - { count: Integer, total: Float }
-  def category_breakdown(transactions)
-    transactions
+  # @param totals [Hash] { income: Float, expense: Float }
+  # @return [Hash] - { count: Integer, total: Float, percentage: Float }
+  def category_breakdown(transactions, totals)
+    result = transactions
     .group_by(&:category)
     .transform_values do |ts|
-      {
-        count: ts.size,
-        total: ts.sum(&:price)
-      }
+      ts.group_by(&:nature)
+      .each_with_object({}) do |(nature, group), result|
+        total = group.sum(&:price)
+        
+        result[nature] =
+        {
+          count: group.size,
+          total: total,
+          percentage: (totals[nature].zero? ? 0.0 : total.to_f / totals[nature]) * 100
+        }
+      end
     end
+    result
   end
 
   # @param transactions [Array<Transaction>]
+  # @param totals [Hash] - { income: Float, expense: Float }
   # @return [Hash] - { count: Integer, total: Float }
-  def merchant_breakdown(transactions)
+  def merchant_breakdown(transactions, totals)
     transactions
-    .group_by(&:category)
+    .group_by(&:merchant)
     .transform_values do |ts|
-      {
-        count: ts.size,
-        total: ts.sum(&:price)
-      }
+      ts.group_by(&:nature)
+      .each_with_object({}) do |(nature, group), result|
+        total = group.sum(&:price)
+
+        result[nature] =
+        {
+          count: group.size,
+          total: total,
+          percentage: (totals[nature].zero? ? 0.0 : total.to_f / totals[nature]) * 100
+        }
+      end
     end
   end
 end

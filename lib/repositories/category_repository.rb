@@ -21,23 +21,36 @@ class CategoryRepository
 
     Category.new(
       id: row["id"],
-      name: row["title"],
+      title: row["title"],
       colour: row["colour"]
     )
   end
 
 
 
-  # @param name [String]
+  # @param title [String]
   # @return [Category?]
   def find_by_title(title)
     build_category(@db.get_first_row(
       <<~SQL,
         SELECT *
         FROM categories
+        WHERE lower(title) = ?
+      SQL
+      [title.downcase]
+    ))
+  end
+
+  # @param title [String]
+  # @return [Category]
+  def search_by_title(title)
+    build_category(@db.get_first_row(
+      <<~SQL,
+        SELECT *
+        FROM categories
         WHERE title LIKE ?
       SQL
-      [title]
+      ["%#{title}%"]
     ))
   end
 
@@ -81,16 +94,14 @@ class CategoryRepository
     return true
   end
 
-
-
   private
   # @param [Hash] row 
   # @param example: {id => Integer, title => String, colour => String}
   # @return [Category]
-  def self.build_category(row)
+  def build_category(row)
     Category.new(
       id: row["id"],
-      name: row["title"],
+      title: row["title"],
       colour: row["colour"]
     )
   end
@@ -103,7 +114,7 @@ class CategoryRepository
     @db.execute(
       <<~SQL,
         UPDATE categories
-        SET name = ?, colour = ?
+        SET title = ?, colour = ?
         WHERE id = ?
       SQL
       [category.title, category.colour, category.id]
@@ -123,7 +134,6 @@ class CategoryRepository
       [category.title, category.colour]
     )
     category.id = @db.last_insert_row_id
-    
     category
   end
 
