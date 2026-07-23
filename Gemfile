@@ -11,3 +11,5 @@ gem "tty-prompt", "~> 0.23.1"
 gem "pastel", "~> 0.8.0"
 
 gem "tty-table", "~> 0.12.0"
+
+gem "dotenv", "~> 3.2"

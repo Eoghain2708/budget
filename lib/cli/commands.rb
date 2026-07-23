@@ -6,6 +6,7 @@ require_relative "summary_formatter"
 require_relative "../helpers/date_helper"
 require_relative "../helpers/period_definer"
 require_relative "../models/category"
+require "dotenv"
 
 # Any class/command which needs the Helper class should define it in their constructor
 module Commands
@@ -98,6 +99,7 @@ module Commands
         @transaction_prompts = Prompts::TransactionPrompts.new(PROMPT, PASTEL)
         @category_prompts = Prompts::CategoryPrompts.new(PROMPT, PASTEL)
         @helper = Helpers.new(@bs, rs: @rs, transaction_prompts: @transaction_prompts, category_prompts: @category_prompts)
+        Dotenv.load
       end
 
       def run(nature: nil, date: nil, price: nil, category: nil, merchant: nil)
@@ -105,8 +107,8 @@ module Commands
         category = @bs.find_category_by_title(category) if category
         category ||= @helper.get_category
       
-        if category.title.strip.downcase == "work"
-          merchant = "Omniplex Cinemas"
+        if category.title.strip.downcase == "work" && ENV['WORKPLACE']
+          merchant = ENV['WORKPLACE']
         end
 
         nature = nature.to_sym if nature ||= @transaction_prompts.get_nature
