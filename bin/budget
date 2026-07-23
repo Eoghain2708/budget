@@ -2,4 +2,10 @@
 
 require_relative "../lib/budget"
 
-CLI.new.run(ARGV)
+begin
+  CLI.new.run(ARGV)
+rescue TTY::Reader::InputInterrupt, Interrupt
+  puts
+  puts Pastel.new.bold.bright_red "Cancelled."
+  exit 130
+end
