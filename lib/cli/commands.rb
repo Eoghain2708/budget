@@ -279,7 +279,7 @@ module Commands
       choice = @transaction_prompts.get_category(choices)
 
       if choice == :add_category
-        category = AddCategory.new(@bs).run
+        category = Categories::AddCategory.new(@bs).run
       else 
         category = choice
       end
