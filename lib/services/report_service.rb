@@ -5,7 +5,7 @@ class ReportService
   
   # @param categories [CategoryRepository]
   # @param transactions [TransactionRepository]
-  # @return BudgetService
+  # @return [ReportService]
   def initialize(categories, transactions)
     raise ArgumentError, "Nil value is invalid" unless categories && transactions
     @categories = categories
