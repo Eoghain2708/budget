@@ -35,19 +35,22 @@ class SummaryFormatter
   # @return [Void]
   def format_summary(message="Report for #{@period}")
     summary_table = TTY::Table.new(
-      [
-        ["   Transactions   ", PASTEL.bold(@summary[:transaction_count])],
-        ["   Income   ", colourise_money(@summary[:total_income])],
-        ["   Expense   ", colourise_money_negative(@summary[:total_expense])],
-        ["   Net gain   ", colourise_money(@summary[:net_gain], signed: true)]
-      ]
+      rows: [
+        ["   Transactions   ", PASTEL.bold.white(@summary[:transaction_count]), PASTEL.bold.white(@prev[:transaction_count])],
+        ["   Income   ", colourise_money(@summary[:total_income]), colourise_money(@prev[:total_income])],
+        ["   Expense   ", colourise_money_negative(@summary[:total_expense]), colourise_money_negative(@prev[:total_expense])],
+        ["   Net gain   ", colourise_money(@summary[:net_gain], signed: true), colourise_money(@prev[:net_gain], signed: true)]
+      ],
+      header: [" Data ", " This #{@period} ", " Previous #{@period} "]
     )
 
     puts ""
     puts PASTEL.bold("General Summary")
-    puts PASTEL.bright_cyan.bold summary_table.render(:unicode, alignments: [:left, :right])
+    puts PASTEL.bright_cyan.bold summary_table.render(:unicode, alignments: [:left, :right, :right])
     divide
   end
+
+
 
 
   # @example => { from: Date, to: Date, transactions: Array<Transaction>, transaction_count: Integer, total_expense: Float, total_income: Float, net_gain: Float,
@@ -60,8 +63,8 @@ class SummaryFormatter
       total = net_result.positive? ? colourise_money_positive(net_result, signed: true) : colourise_money_negative(net_result, signed: true)
       [
         PASTEL.public_send(category.colour.to_sym, category.title),
-        "#{colourise_money_positive(totals[:income][:total])} (#{PASTEL.bold totals[:income][:percentage]&.round(2) || "0"}%)",
-        "#{colourise_money_negative(totals[:expense][:total])} (#{PASTEL.bold totals[:expense][:percentage]&.round(2) || "0"}%)",
+        "#{colourise_money_positive(totals[:income][:total])} (#{PASTEL.bold totals[:income][:percentage]&.round(2) || "0.00"}%)",
+        "#{colourise_money_negative(totals[:expense][:total])} (#{PASTEL.bold totals[:expense][:percentage]&.round(2) || "0.00"}%)",
         total
       ]
     end
@@ -84,8 +87,8 @@ class SummaryFormatter
       total = net_result.positive? ? colourise_money_positive(net_result, signed: true) : colourise_money_negative(net_result, signed: true)
       [
         PASTEL.white.bold(merchant),
-        "#{colourise_money_positive(totals[:income][:total])} (#{PASTEL.bold totals[:income][:percentage]&.round(2) || "0"}%)",
-        "#{colourise_money_negative(totals[:expense][:total])} (#{PASTEL.bold totals[:expense][:percentage]&.round(2) || "0"}%)",
+        "#{colourise_money_positive(totals[:income][:total])} (#{PASTEL.bold totals[:income][:percentage]&.round(2) || "0.00"}%)",
+        "#{colourise_money_negative(totals[:expense][:total])} (#{PASTEL.bold totals[:expense][:percentage]&.round(2) || "0.00"}%)",
         total
       ]
     end
@@ -158,16 +161,12 @@ class SummaryFormatter
 
   # @return [Void]
   def print_net_gain_at_glance
-    puts PASTEL.bold.bright_cyan(" - Total income: #{colourise_money_positive(@summary[:total_income])}")
-    puts PASTEL.bold.bright_blue(" - Total expense: #{colourise_money_negative(@summary[:total_expense])}")
-    puts PASTEL.bold.bright_magenta(" - Total gain: #{colourise_money(@summary[:net_gain], signed: true)}")
+    puts PASTEL.bold.bright_green(" - In: #{colourise_money_positive(@summary[:total_income])}")
+    puts PASTEL.bold.bright_red(" - Out: #{colourise_money_negative(@summary[:total_expense])}")
+    puts PASTEL.bold.bright_cyan(" - Gain: #{colourise_money(@summary[:net_gain], signed: true)}")
     divide 1
-    puts "#{PASTEL.bold " - Last #{@period}'s net gain: #{colourise_money(@prev&.dig(:net_gain))}"}"
-    puts "#{PASTEL.bold.underline(" - Net gain vs last #{@period}: ")}" " #{PASTEL.bold(compare_net_gain_to_previous)}" 
+    puts "#{PASTEL.bold.underline(" - Gain vs last #{@period}: ")}" " #{PASTEL.bold(compare_net_gain_to_previous)}" 
     divide 1
-    puts PASTEL.bright_green.bold("You earned more than you spent for this #{@period}!") if @summary[:net_gain].positive?
-    puts PASTEL.bright_red.bold("You spent more than you earned for this #{@period}.") if @summary[:net_gain].negative?
-    puts PASTEL.white.bold "You spent and earned equally for this #{@period}!" if @summary[:net_gain].zero?
     
   end
 

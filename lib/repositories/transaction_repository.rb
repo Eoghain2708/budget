@@ -57,9 +57,9 @@ class TransactionRepository
     rows = @db.execute(
       <<~SQL,
         SELECT * FROM transactions
-        WHERE merchant LIKE ?
+        WHERE LOWER(merchant) LIKE LOWER(?)
       SQL
-      [merchant]
+      ["%#{merchant.downcase}%"]
     )
 
     return [] unless rows
@@ -159,6 +159,54 @@ class TransactionRepository
 
     rows.map do |row|
       row["merchant"]
+    end
+  end
+
+
+  # @param from [Date]
+  # @param to [Date]
+  # @param category [Category]
+  # @param merchant [String]
+  # @param nature [String]
+  # @return [Array<Transaction>]
+  def filter_and_find(from: nil, to: nil, category: nil, merchant: nil, nature: nil)
+    sql = "SELECT * FROM transactions"
+    conditions = []
+    params = []
+
+    if from
+      conditions << "date >= ?"
+      params << from.iso8601
+    end
+
+    if to
+      conditions << "date <= ?"
+      params << to.iso8601
+    end
+
+    if category
+      conditions << "category_id = ?"
+      params << category.id
+    end
+
+    if merchant 
+      conditions << "merchant = ?"
+      params << merchant
+    end
+
+    if nature
+      conditions << "nature = ?"
+      params << nature
+    end
+
+    unless conditions.empty?
+      sql << "WHERE" << conditions.join(" AND ")
+    end
+
+    rows = @db.execute(sql, params)
+
+    rows.map do |row|
+      build_transaction(row)
     end
   end
 
