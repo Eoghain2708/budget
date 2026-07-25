@@ -20,7 +20,6 @@ class ReportService
     
     transactions =  @transactions.find_between(from: from, to: to)
     summary = build_summary(transactions, from: from, to: to)
-    pp summary
     summary
   end
 
