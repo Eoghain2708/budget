@@ -34,6 +34,16 @@ class Transaction
     @nature = nature
   end
 
+  def ==(other)
+    other.is_a?(Transaction) && @id == other.id
+  end
+
+  alias eql? ==
+
+  def hash
+    @id.hash
+  end
+
   def income?
     @nature == :income
   end
