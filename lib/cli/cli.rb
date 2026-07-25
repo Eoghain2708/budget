@@ -29,7 +29,7 @@ class CLI
     case command.downcase.strip
 
     # adding transactions
-    when "transaction", "trans"
+    when "transaction", "trans", "t"
       action = argv&.shift
       unless action
         errorise("You must include an action: add | delete | edit")
@@ -37,17 +37,17 @@ class CLI
       end
       case action.downcase.strip
 
-      when "add"
+      when "add", "a"
         options = OptionWizard.parse_transaction_opts(argv)
         price = argv.shift&.to_f unless argv.empty?
         Commands::Transactions::AddTransaction.new(@bs, @rs).run(price: price, **options)
       
-      when "delete"
+      when "delete", "d"
         options = OptionWizard.parse_transaction_delete_and_edit_opts(argv)
         dates = get_date_for_edit_and_delete(argv, options)
         Commands::Transactions::DeleteTransaction.new(@bs, @rs).run(**dates)
 
-      when "edit"
+      when "edit", "e"
         options = OptionWizard.parse_transaction_delete_and_edit_opts(argv)
         dates = get_date_for_edit_and_delete(argv, options)
         Commands::Transactions::EditTransaction.new(@bs, @rs).run(**dates)
@@ -56,20 +56,20 @@ class CLI
       
 
 
-    when "earn"
+    when "earn", "e"
       options = OptionWizard.parse_preset_nature_opts(argv)
       price = argv.shift&.to_f unless argv.empty?
       Commands::Transactions::AddTransaction.new(@bs, @rs).run(price: price, nature: :income, **options)
 
 
-    when "spend"
+    when "spend", "s"
       options = OptionWizard.parse_preset_nature_opts(argv)
       price = argv.shift&.to_f unless argv.empty?
       Commands::Transactions::AddTransaction.new(@bs, @rs).run(price: price, nature: :expense, **options)
 
     
     # summaries
-    when "month"
+    when "month", "m"
       options = OptionWizard.parse_summary_opts(argv)
       if argv.empty?
         print_date_error
@@ -79,7 +79,7 @@ class CLI
       Commands::Summaries::MonthlySummary.new(@bs, @rs).run(date, **options)
 
 
-    when "week"
+    when "week", "w"
       options = OptionWizard.parse_summary_opts(argv)
       if argv.empty?
         print_date_error
@@ -89,7 +89,7 @@ class CLI
       Commands::Summaries::WeeklySummary.new(@bs, @rs).run(date, **options)
 
 
-    when "day"
+    when "day", "d"
       options = OptionWizard.parse_summary_opts(argv)
       if argv.empty?
         print_date_error
@@ -99,7 +99,7 @@ class CLI
       Commands::Summaries::DailySummary.new(@bs, @rs).run(date, **options)
 
     
-    when "category", "cat"
+    when "category", "cat", "c"
       action = argv&.shift
       unless action
         errorise "You must include an action: add | all | delete | edit"
@@ -125,6 +125,7 @@ class CLI
       puts PASTEL.bright_red.bold "Invalid command"
       print_available_commands
     end
+
   end
 
 
