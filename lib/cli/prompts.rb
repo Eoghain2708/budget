@@ -48,12 +48,12 @@ module Prompts
     # @param categories [Array<String>]
     # @return [Category]
     def get_category(categories)
-      @prompt.select("Choose a category", categories)
+      @prompt.select("Choose a category", categories, per_page: 15)
     end
 
     # @return [String]
     def select_merchant(options)
-      @prompt.select("Choose a merchant", options)
+      @prompt.select("Choose a merchant", options, per_page: 15)
     end
 
     def get_merchant
@@ -95,6 +95,12 @@ module Prompts
 
     def get_wants_to_change_nature
       @prompt.yes?("Would you like to change the nature (expense/income)?")
+    end
+
+
+    def get_changes
+      choices = ["date", "category", "merchant", "price", "nature"]
+      @prompt.multi_select("Select the attributes you'd like to change:", choices, cycle: true)
     end
 
   end
