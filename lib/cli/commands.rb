@@ -157,32 +157,54 @@ module Commands
         return unless from
         choice = @helper.get_transaction_choice_between_dates(from: from, to: to)
         return unless choice
+        changes = @transaction_prompts.get_changes
 
-
-        if @transaction_prompts.get_wants_to_change_category
+        if changes.include?("category")
           new_category = @helper.get_category
         end
 
-        if @transaction_prompts.get_wants_to_change_date
+        if changes.include?("date")
           new_date = PeriodDefiner.define_day(@transaction_prompts.get_date)
         end
 
-        if @transaction_prompts.get_wants_to_change_merchant
+
+        if changes.include?("merchant")
           new_merchant = @helper.choose_merchant
         end
 
-        if @transaction_prompts.get_wants_to_change_price
+        if changes.include?("price")
           new_price = @transaction_prompts.get_price
         end
 
-        if @transaction_prompts.get_wants_to_change_nature
+        if changes.include?("nature")
           new_nature = @transaction_prompts.get_nature.to_sym
         end
 
-        @bs.edit_transaction(choice.id, new_price: new_price, new_category: new_category, new_date: new_date, new_merchant: new_merchant, new_nature: new_nature)
+        # print out changes
+        puts PASTEL.bold.bright_yellow previous_and_new(choice.category.title, new_category.title, "Category") if new_category
 
+        puts PASTEL.bold.bright_blue previous_and_new(choice.date.to_s, new_date, "Date") if new_date
+        puts PASTEL.bold.cyan previous_and_new(choice.merchant, new_merchant, "Merchant") if new_merchant
+        puts PASTEL.bold previous_and_new(choice.price, new_price, "Price") if new_price
+        puts PASTEL.bold previous_and_new(choice.nature, new_nature, "Nature") if new_nature
+        @bs.edit_transaction(choice.id, new_price: new_price, new_category: new_category, new_date: new_date, new_merchant: new_merchant, new_nature: new_nature)
+        puts PASTEL.bold.bright_green("Edited successfully!")
+      end
+
+      # @param attribute [String]
+      # @param previous [String]
+      # @param new [String]
+      # @return [String]
+      def previous_and_new(previous, new, attribute=nil)
+        if attribute
+          return "#{attribute}: #{PASTEL.bold.bright_red previous} => #{PASTEL.bold.bright_green new}"
+        else 
+          puts "#{PASTEL.bold.bright_red previous} => #{PASTEL.bold.bright_green new}"
+        end
       end
     end
+
+    
   end
 
   module Summaries
@@ -335,21 +357,55 @@ module Commands
 
     # @return [Transaction | nil]
     def get_transaction_choice_between_dates(from:, to:)
-    transactions = @bs.find_transactions_between(from: from, to: to)
-    if transactions.empty?
-        puts PASTEL.bright_red.bold "No transactions found in this period."
-        return nil
-    end
-    choices = transactions.map do |t|
+      transactions = @bs.find_transactions_between(from: from, to: to)
+      if transactions.empty?
+          puts PASTEL.bright_red.bold "No transactions found in this period."
+          return nil
+      end
+
+      choices = transactions.map do |t|
+        formatted = formatted_transaction(t)
         {
-          name: "#{t.date} | #{t.category.title} | #{t.nature} | #{t.merchant} | #{t.price}",
+          name: [
+          formatted[:date],
+          formatted[:category],
+          formatted[:nature],
+          formatted[:merchant],
+          formatted[:price]
+        ].join(" | "),
           value: t
         }
       end
 
-    choice = @transaction_prompts.get_transaction(choices)
-    pp choice
-    return choice
+      choice = @transaction_prompts.get_transaction(choices)
+      return choice
+    end
+
+    # @param t [Transaction]
+    # @return [Hash<Symbol, String>]
+    def formatted_transaction(t)
+      date = t.date.to_s.ljust(12)
+      date = PASTEL.bold.bright_yellow(date)
+      category = t.category.title.ljust(15)
+      category = PASTEL.bold.public_send(t.category.colour.to_sym, category)
+      merchant = t.merchant.ljust(30)
+      merchant = PASTEL.bold.public_send(Category::ALLOWED_COLOURS.sample.to_sym, merchant)
+      if t.nature == :expense
+        nature = "Expense".ljust(30)
+        nature = PASTEL.bold.bright_red(nature)
+      else 
+        nature = "Income".ljust(30)
+        nature = PASTEL.bold.bright_green(nature)
+      end
+      price = t.price.to_s.rjust(10)
+      price = PASTEL.bold(price)
+      {
+        date: date,
+        category: category,
+        merchant: merchant,
+        nature: nature,
+        price: price
+      }
     end
   end
 
