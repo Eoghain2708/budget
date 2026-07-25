@@ -113,7 +113,7 @@ module Commands
 
         nature = nature.to_sym if nature ||= @transaction_prompts.get_nature
         
-        merchant ||= @helper.get_recent_merchants(category)
+        merchant ||= @helper.choose_from_recent_merchants(category)
 
         date = DateHelper.parse_arg(date) if date
         date ||= Date.today
@@ -157,6 +157,8 @@ module Commands
         return unless from
         choice = @helper.get_transaction_choice_between_dates(from: from, to: to)
         return unless choice
+
+
         if @transaction_prompts.get_wants_to_change_category
           new_category = @helper.get_category
         end
@@ -300,14 +302,12 @@ module Commands
       }
       choice = @transaction_prompts.select_merchant(merchants)
       if choice == :add_merchant
-        merchant = @transaction_prompts.get_merchant
-      else 
-        merchant = choice
+        choice = @transaction_prompts.get_merchant
       end
-      merchant
+      choice 
     end
 
-    def get_recent_merchants(category)
+    def choose_from_recent_merchants(category)
       merchants = @bs.recent_merchants(category).map do |merchant|
         {
         name: PASTEL.public_send(Category::ALLOWED_COLOURS.sample.to_sym).bold(merchant),
@@ -325,9 +325,11 @@ module Commands
 
       choice = @transaction_prompts.select_merchant(merchants)
       if choice == :other
-        choose_merchant
+        return choose_merchant
       elsif choice == :add_merchant
-        @transaction_prompts.get_merchant
+        return @transaction_prompts.get_merchant
+      else 
+        return choice
       end
     end
 
