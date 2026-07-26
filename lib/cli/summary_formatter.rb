@@ -23,11 +23,16 @@ class SummaryFormatter
   def format(message="Report for #{@period}", options: nil)
     divide
     puts "#{PASTEL.bold message}: #{PASTEL.yellow.bold(@summary[:from].strftime("%A %d %B %Y"))} => #{PASTEL.yellow.bold(@summary[:to].strftime("%A %d %B %Y"))}"
+    if options&.dig(:inv)
+      format_investments() unless @summary&.dig(:investment_breakdown).empty?
+      return
+    end
     print_net_gain_at_glance
     return if options&.dig(:short)
     format_summary(message)
     format_categories() unless @summary&.dig(:category_breakdown).empty?
     format_merchants() unless @summary&.dig(:merchant_breakdown).empty?
+    format_investments() unless @summary&.dig(:investment_breakdown).empty?
   end
 
  
@@ -39,7 +44,7 @@ class SummaryFormatter
         ["   Transactions   ", PASTEL.bold.white(@summary[:transaction_count]), PASTEL.bold.white(@prev[:transaction_count])],
         ["   Income   ", colourise_money(@summary[:total_income]), colourise_money(@prev[:total_income])],
         ["   Expense   ", colourise_money_negative(@summary[:total_expense]), colourise_money_negative(@prev[:total_expense])],
-        ["   Net gain   ", colourise_money(@summary[:net_gain], signed: true), colourise_money(@prev[:net_gain], signed: true)]
+        ["   Net gain   ", colourise_money(@summary[:net_gain], signed: true), colourise_money(@prev[:net_gain], signed: true)],
       ],
       header: [" Data ", " This #{@period} ", " Previous #{@period} "]
     )
@@ -103,6 +108,26 @@ class SummaryFormatter
     divide
   end
 
+  def format_investments
+    rows = @summary[:investment_breakdown].map do |merchant, data|
+      [
+        PASTEL.white.bold(merchant),
+        PASTEL.white.bold(data[:count]),
+        PASTEL.white.bold(colourise_money data[:total])
+      ]
+    end
+
+    table = TTY::Table.new(
+      header: ["   Stock   ", "   Transactions   ", "   Total Invst'd   "],
+      rows: rows
+    )
+
+    puts PASTEL.bold.bright_yellow("INVESTMENTS")
+    divide(1)
+    puts PASTEL.bold.magenta(" - Total invested: #{colourise_money(@summary[:total_investment])}")
+    puts PASTEL.bright_yellow.bold table.render(:unicode, alignments: [:left, :right, :right])
+  end
+
   private 
   # @param number [Float]
   # @param signed [Boolean]
@@ -148,7 +173,8 @@ class SummaryFormatter
   def totals_by_nature(natures)
     {
       income: natures.fetch(:income, { count: 0, total: 0 }),
-      expense: natures.fetch(:expense, { count: 0, total: 0 })
+      expense: natures.fetch(:expense, { count: 0, total: 0 }),
+      investment: natures.fetch(:investment, { count: 0, total: 0 })
     }
   end
 
@@ -167,7 +193,6 @@ class SummaryFormatter
     divide 1
     puts "#{PASTEL.bold.underline(" - Gain vs last #{@period}: ")}" " #{PASTEL.bold(compare_net_gain_to_previous)}" 
     divide 1
-    
   end
 
   # @return [Float] - percentage difference between current and previous

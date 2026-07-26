@@ -21,7 +21,7 @@ class Transaction
   # @param nature [Symbol] - :expense or :income
   # @return [Transaction]
   def initialize(id: nil, price:, date: Date.today, category:, merchant: "unspecified", nature: :expense)
-    unless nature == :income || nature == :expense
+    unless nature == :income || nature == :expense || nature == :investment
       raise ArgumentError, "Invalid nature"
     end
     raise ArgumentError, "Invalid Price" unless price.positive?
@@ -50,5 +50,13 @@ class Transaction
 
   def expense?
     @nature == :expense
+  end
+
+  def investment?
+    @nature == :investment
+  end
+
+  def counts_towards_net_gain?
+    income? || expense?
   end
 end

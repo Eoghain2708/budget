@@ -38,6 +38,7 @@ module OptionWizard
     params = {}
     OptionParser.new do |opts|
       opts.on('--short')
+      opts.on('--inv')
     end.parse!(into: params)
     params
   end
