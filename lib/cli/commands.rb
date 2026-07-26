@@ -388,17 +388,24 @@ module Commands
       date = PASTEL.bold.bright_yellow(date)
       category = t.category.title.ljust(15)
       category = PASTEL.bold.public_send(t.category.colour.to_sym, category)
-      merchant = t.merchant.ljust(30)
+      merchant = t.merchant.ljust(15)
       merchant = PASTEL.bold.public_send(Category::ALLOWED_COLOURS.sample.to_sym, merchant)
-      if t.nature == :expense
-        nature = "Expense".ljust(30)
-        nature = PASTEL.bold.bright_red(nature)
-      else 
-        nature = "Income".ljust(30)
-        nature = PASTEL.bold.bright_green(nature)
-      end
       price = t.price.to_s.rjust(10)
-      price = PASTEL.bold(price)
+      if t.expense?
+        nature = "Exp.".ljust(5)
+        nature = PASTEL.bold.bright_red(nature)
+        price = PASTEL.bold.bright_red(price)
+      elsif t.income?
+        nature = "Inc.".ljust(5)
+        nature = PASTEL.bold.bright_green(nature)
+        price = PASTEL.bold.bright_green(price)
+      elsif t.investment?
+        nature = "Inv.".ljust(5)
+        nature = PASTEL.bold.bright_magenta(nature)
+        price = PASTEL.bold.bright_magenta(price)
+      end
+      
+      
       {
         date: date,
         category: category,

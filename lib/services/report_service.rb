@@ -58,6 +58,13 @@ class ReportService
     result
   end
 
+  # @param transactions [Array<Transaction>]
+  # @return [Array<Transaction>]
+  def find_all_investments(transactions)
+    result = transactions.select { |t| t.nature == :investment }
+    result
+  end
+
 
   private
   # @param transactions [Array<Transaction>]
@@ -73,20 +80,25 @@ class ReportService
   # merchant_breakdown: Hash
   # }
   def build_summary(transactions, from:, to:)
+    tracked_transactions = transactions.select { |t| t.counts_towards_net_gain? }
+    investments = transactions.select { |t| t.investment? }
+
     result = {
       from: from,
       to: to,
       transactions: transactions,
-      transaction_count: transactions.size,
-      total_expense: transactions.select { |t| t.nature == :expense }.sum(&:price),
-      total_income: transactions.select { |t| t.nature == :income }.sum(&:price),
-      net_gain: (transactions.select { |t| t.nature == :income }.sum(&:price)) - (transactions.select { |t| t.nature == :expense }.sum(&:price)),
-      
+      transaction_count: tracked_transactions.size,
+      total_expense: find_all_expenses(tracked_transactions).sum(&:price),
+      total_income: find_all_earnings(tracked_transactions).sum(&:price),
+      investment_count: investments.size,
+      total_investment: investments.sum(&:price),
+      net_gain: (find_all_earnings(transactions).sum(&:price)) - (find_all_expenses(transactions).sum(&:price)),
     }
 
     totals = { income: result[:total_income], expense: result[:total_expense] }
-    result[:category_breakdown] = category_breakdown(transactions, totals)
-    result[:merchant_breakdown] = merchant_breakdown(transactions, totals)
+    result[:category_breakdown] = category_breakdown(tracked_transactions, totals)
+    result[:merchant_breakdown] = merchant_breakdown(tracked_transactions, totals)
+    result[:investment_breakdown] = investment_breakdown(investments)
 
     # sort category_breakdown 
     sorted_category_breakdown = result[:category_breakdown].sort_by do |_, natures|
@@ -151,4 +163,15 @@ class ReportService
       end
     end
   end
+
+  def investment_breakdown(transactions)
+    transactions.group_by(&:merchant)
+    .transform_values do |ts|
+      {
+        count: ts.size,
+        total: ts.sum(&:price)
+      }
+    end
+  end
+    
 end

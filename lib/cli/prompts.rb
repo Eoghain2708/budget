@@ -42,7 +42,7 @@ module Prompts
     
     # @return [Symbol]
     def get_nature
-      @prompt.select("Is this an outgoing or incoming amount?", %w(expense income)).to_sym
+      @prompt.select("Is this an outgoing or incoming amount, or an investment?", %w(expense income investment)).to_sym
     end
 
     # @param categories [Array<String>]
@@ -76,27 +76,6 @@ module Prompts
     def get_transaction(choices)
       @prompt.select("Choose a transaction", choices)
     end
-
-    def get_wants_to_change_category
-      @prompt.yes?("Would you like to change the category?")
-    end
-
-    def get_wants_to_change_date
-      @prompt.yes?("Would you like to change date?")
-    end
-
-    def get_wants_to_change_merchant
-      @prompt.yes?("Would you like to change merchant?")
-    end
-
-    def get_wants_to_change_price
-      @prompt.yes?("Would you like to change the price of this transaction?")
-    end
-
-    def get_wants_to_change_nature
-      @prompt.yes?("Would you like to change the nature (expense/income)?")
-    end
-
 
     def get_changes
       choices = ["date", "category", "merchant", "price", "nature"]

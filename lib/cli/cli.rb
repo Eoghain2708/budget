@@ -66,6 +66,12 @@ class CLI
       options = OptionWizard.parse_preset_nature_opts(argv)
       price = argv.shift&.to_f unless argv.empty?
       Commands::Transactions::AddTransaction.new(@bs, @rs).run(price: price, nature: :expense, **options)
+    
+
+    when "invest", "i"
+      options = OptionWizard.parse_preset_nature_opts(argv)
+      price = argv.shift&.to_f unless argv.empty?
+      Commands::Transactions::AddTransaction.new(@bs, @rs).run(price: price, nature: :investment, **options)
 
     
     # summaries
