@@ -7,4 +7,10 @@ CLI.new.run(ARGV)
 rescue TTY::Reader::InputInterrupt, Interrupt
   puts ""
   puts Pastel.new.bright_red.bold "Cancelled."
+rescue Date::Error
+  puts ""
+  puts Pastel.new.bright_red.bold "Invalid date"
+rescue OptionParser::InvalidOption
+  puts ""
+  puts Pastel.new.bright_red.bold("Invalid option")
 end
