@@ -64,13 +64,13 @@ class SummaryFormatter
   def format_categories
     rows = @summary[:category_breakdown].map do |category, natures|
       totals = totals_by_nature(natures)
-      net_result = totals[:income][:total] - totals[:expense][:total]
-      total = net_result.positive? ? colourise_money_positive(net_result, signed: true) : colourise_money_negative(net_result, signed: true)
+      row_data = row_data(totals)
+      
       [
         PASTEL.public_send(category.colour.to_sym, category.title),
-        "#{colourise_money_positive(totals[:income][:total])} (#{PASTEL.bold totals[:income][:percentage]&.round(2) || "0.00"}%)",
-        "#{colourise_money_negative(totals[:expense][:total])} (#{PASTEL.bold totals[:expense][:percentage]&.round(2) || "0.00"}%)",
-        total
+        "#{row_data[:income]} #{row_data[:income_percentage]}",
+        "#{row_data[:expense]} #{row_data[:expense_percentage]}",
+        row_data[:total]
       ]
     end
 
@@ -88,13 +88,12 @@ class SummaryFormatter
   def format_merchants
     rows = @summary[:merchant_breakdown].map do |merchant, natures|
       totals = totals_by_nature(natures)
-      net_result = totals[:income][:total] - totals[:expense][:total]
-      total = net_result.positive? ? colourise_money_positive(net_result, signed: true) : colourise_money_negative(net_result, signed: true)
+      row_data = row_data(totals)
       [
         PASTEL.white.bold(merchant),
-        "#{colourise_money_positive(totals[:income][:total])} (#{PASTEL.bold totals[:income][:percentage]&.round(2) || "0.00"}%)",
-        "#{colourise_money_negative(totals[:expense][:total])} (#{PASTEL.bold totals[:expense][:percentage]&.round(2) || "0.00"}%)",
-        total
+        "#{row_data[:income]} #{row_data[:income_percentage]}",
+        "#{row_data[:expense]} #{row_data[:expense_percentage]}",
+        row_data[:total]
       ]
     end
 
@@ -174,7 +173,6 @@ class SummaryFormatter
     {
       income: natures.fetch(:income, { count: 0, total: 0 }),
       expense: natures.fetch(:expense, { count: 0, total: 0 }),
-      investment: natures.fetch(:investment, { count: 0, total: 0 })
     }
   end
 
@@ -223,23 +221,33 @@ class SummaryFormatter
     (((comparee - comparator).to_f / comparator.abs) * 100).round(2)
   end
 
-  # @param percentage [Float]
-  def colourise_percentage(percentage)
-   # ▲, ▼
-   if percentage.nan?
-     return PASTEL.bold.bright_red(" - No transactions for previous #{@period} to compare to.")
-   end
-  
-   if percentage == Float::INFINITY
-     return PASTEL.bold.white.dim("No data for last #{@period}")
-   end
+  # @param num [Float | Integer]
+  # @return [String]
+  def colourise_or_dash_money(num, negative: false)
+    return PASTEL.bold.dim("-") if num.zero?
 
-   if percentage.positive?
-     return PASTEL.bold.bright_green("▲#{percentage}%")
-   end
+    return colourise_money_negative(num) if negative
+    return colourise_money_positive(num)
+  end
 
-   if percentage.negative?
-     return PASTEL.bold.bright_red("▼#{percentage}%")
-   end
+  # @param totals [Hash] 
+  # => { income: { count: Integer, total: Float, percentage: Float }, expense: { count: Integer, total: Float, percentage: Float } }
+  # if count/total are zero then percentage will not exist in this Hash
+  def row_data(totals)
+    net_result = totals[:income][:total] - totals[:expense][:total]
+    total = net_result.positive? ? colourise_money_positive(net_result, signed: true) : colourise_money_negative(net_result, signed: true)
+    income = colourise_or_dash_money(totals[:income][:total])
+    income_percentage = totals[:income][:percentage].nil? ? "" : "(#{totals[:income][:percentage].round(2)}%)"
+    expense = colourise_or_dash_money(totals[:expense][:total], negative: true)
+    expense_percentage = totals[:expense][:percentage].nil? ? "" : "(#{totals[:expense][:percentage].round(2)}%)"
+
+    {
+      net_result: net_result,
+      total: total,
+      income: income,
+      income_percentage: income_percentage,
+      expense: expense,
+      expense_percentage: expense_percentage
+    }
   end
 end
