@@ -2,6 +2,7 @@ class CategoryRepository
   # @param db [SQLite3::Database] - dependency injection for SQLite database
   def initialize(db)
     # @!attribute [SQLite3::Database]
+    raise ArgumentError, "db must exist" unless db
     @db = db
   end
 

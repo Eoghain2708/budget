@@ -3,7 +3,7 @@ require "date"
 class BudgetService
   # @param categories [CategoryRepository]
   # @param transactions [TransactionRepository]
-  # @return BudgetService
+  # @return [BudgetService]
   def initialize(categories, transactions)
     raise ArgumentError, "Nil value is invalid" unless categories && transactions
     @categories = categories

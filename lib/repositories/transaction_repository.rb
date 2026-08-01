@@ -6,6 +6,7 @@ class TransactionRepository
   # @param category_repo [CategoryRepository]
   def initialize(db, category_repo)
     # @!attribute [SQLite3::Database]
+    raise ArgumentError, "db and category repository must exist" unless db && category_repo
     @db = db
     # @!attribute [CategoryRepository]
     @category_repo = category_repo

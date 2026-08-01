@@ -9,7 +9,6 @@ class CLI
   PASTEL = Pastel.new
   def initialize()
     @database = Database.connection()
-    Migrations.migrate(@database)
     category_repo = CategoryRepository.new(@database)
     transaction_repo = TransactionRepository.new(@database, category_repo)
     @bs = BudgetService.new(category_repo, transaction_repo)
