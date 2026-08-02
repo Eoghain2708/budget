@@ -1,11 +1,11 @@
 class Limit
   attr_accessor :id, :category, :merchant, :amount, :period_type
-  ALLOWED_PERIOD_TYPES = [:daily, :weekly, :monthly, :yearly]
+  ALLOWED_PERIOD_TYPES = [:day, :week, :month, :year]
   # @param id [Integer]
   # @param category [Category]
   # @param merchant [String]
   # @param amount [Float]
-  # @param period_type [Symbol] - :daily, :weekly, :monthly, :yearly
+  # @param period_type [Symbol]
   def initialize(id: nil, category: nil, merchant: nil, amount:, period_type:)
     raise ArgumentError, "Limit amount must be specified" unless amount
     raise ArgumentError, "Period (e.g week, month) must be specified" unless period_type
@@ -20,18 +20,18 @@ class Limit
   end
 
   def daily?
-    @period_type == :daily
+    @period_type == :day
   end
 
   def weekly?
-    @period_type == :weekly
+    @period_type == :week
   end
 
   def monthly?
-    @period_type == :monthly
+    @period_type == :month
   end
 
   def yearly?
-    @period_type == :yearly
+    @period_type == :year
   end
 end

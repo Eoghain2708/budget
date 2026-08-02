@@ -33,6 +33,9 @@ class LimitRepository
       WHERE id = ?
     SQL
     [id]
+
+    return true if @db.changes > 0
+    return false
   end
 
   # @param category [Category]
