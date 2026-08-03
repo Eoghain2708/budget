@@ -68,4 +68,8 @@ class LimitService
   def find_by_merchant_and_period_type(merchant, period_type:)
     @limits.find_by_merchant_and_period_type(merchant, period_type: period_type)
   end
+
+  def find_by_attrs(category: nil, merchant: nil, period_type: nil)
+    @limits.find_by_attrs(category: category, merchant: merchant, period_type: period_type)
+  end
 end

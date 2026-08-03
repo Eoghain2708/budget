@@ -1,6 +1,6 @@
 class Limit
   attr_accessor :id, :category, :merchant, :amount, :period_type
-  ALLOWED_PERIOD_TYPES = [:day, :week, :month, :year]
+  ALLOWED_PERIOD_TYPES = [:daily, :weekly, :monthly, :yearly]
   # @param id [Integer]
   # @param category [Category]
   # @param merchant [String]
@@ -20,18 +20,18 @@ class Limit
   end
 
   def daily?
-    @period_type == :day
+    @period_type == :daily
   end
 
   def weekly?
-    @period_type == :week
+    @period_type == :weekly
   end
 
   def monthly?
-    @period_type == :month
+    @period_type == :monthly
   end
 
   def yearly?
-    @period_type == :year
+    @period_type == :yearly
   end
 end

@@ -81,7 +81,23 @@ module Prompts
       choices = ["date", "category", "merchant", "price", "nature"]
       @prompt.multi_select("Select the attributes you'd like to change:", choices, cycle: true)
     end
+  end
 
+  class LimitPrompts
+    def initialize(prompt, pastel)
+      @prompt = prompt
+      @pastel = pastel
+    end
+
+    # @return [Symbol]
+    def get_category_or_merchant
+      @prompt.select("Is this limit for a specific merchant or a Category?", %w(merchant category)).to_sym
+    end
+
+    # @return [Symbol]
+    def get_period_type
+      @prompt.select("What is period for this limit?", %w(daily weekly monthly yearly)).to_sym
+    end
   end
   
 end

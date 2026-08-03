@@ -265,6 +265,64 @@ module Commands
   end
 
 
+  module Limits
+    class ViewLimits
+      # @param ls [LimitService]
+      # @param bs [BudgetService]
+      def initialize(ls, bs)
+        @ls = ls
+        @bs = bs
+      end
+
+      def run(category: nil, merchant: nil, period_type: nil)
+        period_type = period_type.to_sym if period_type
+        category = @bs.find_category_by_title if category
+        rows = @ls.find_by_attrs(category:, merchant:, period_type:)
+        LimitFormatter.new.format(rows)
+      end
+    end
+      
+    class AddLimit
+      # @param bs [BudgetService]
+      # @param rs [ReportService]
+      # @param ls [LimitService]
+      # @param transactions [Prompts::TransactionPrompts]
+      # @param limits [Prompts::LimitPrompts]
+      # @param helper [Commands::Helpers]
+      def initialize(bs, rs, ls, transactions, limits, helper)
+        @bs = bs
+        @rs = rs
+        @ls = ls
+        @transactions = transactions
+        @limits = limits
+        @helper = helper
+      end
+
+      def run(merchant: false, category: false, amount: nil, period_type: nil)
+        category = @bs.find_category_by_title if category
+        amount ||= @transactions.get_price
+        period_type ||= @limits.get_period_type
+
+        unless merchant || category
+          res = @limits.get_category_or_merchant
+          if res == :merchant
+            merchant = @helper.choose_merchant
+          else 
+            category = @helper.get_category
+          end
+        end
+
+        @ls.create_limit(
+          category: category,
+          merchant: merchant,
+          amount: amount,
+          period_type: period_type
+        )
+      end
+    end
+  end
+
+
   # A helper class for things like get_category, choose_merchant etc so that they can be used across multiple commands
   class Helpers
 
