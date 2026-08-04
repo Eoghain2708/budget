@@ -10,7 +10,7 @@ class Transaction
   attr_accessor :category
   # @return [String]
   attr_accessor :merchant
-
+  # @return [Symbol]
   attr_accessor :nature
 
   # @param id - unique identifier
@@ -18,7 +18,7 @@ class Transaction
   # @param date [Date] - date of transaction (today by default)
   # @param category [Category] - category of transaction
   # @param merchant [String] - unspecified by default
-  # @param nature [Symbol] - :expense or :income
+  # @param nature [Symbol] - :expense, :income, :investment
   # @return [Transaction]
   def initialize(id: nil, price:, date: Date.today, category:, merchant: "unspecified", nature: :expense)
     unless nature == :income || nature == :expense || nature == :investment

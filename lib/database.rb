@@ -1,5 +1,6 @@
 require "sqlite3"
 require "fileutils"
+require_relative "migration_runner"
 
 # Database class used to create or retrieve a connection with the SQLite database
 class Database
@@ -14,7 +15,9 @@ class Database
     @connection ||= begin
     db = SQLite3::Database.new(DB_PATH)
     db.results_as_hash = true
+    db.execute("PRAGMA foreign_keys = ON;")
+    MigrationRunner.run(db)
     db
-    end
+    end 
   end
 end

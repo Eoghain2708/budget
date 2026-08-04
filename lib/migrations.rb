@@ -29,6 +29,10 @@ class Migrations
     clear_categories(db)
   end
 
+  def self.run_migrations
+    
+  end
+
 
   private 
   # @param db [SQLite3::Database]
@@ -53,7 +57,7 @@ class Migrations
         merchant TEXT,
         nature TEXT,
 
-        FOREIGN_KEY category_id
+        FOREIGN KEY (category_id)
           REFERENCES categories(id)
           ON DELETE CASCADE
       );

@@ -3,6 +3,7 @@ require "pastel"
 require_relative "prompts"
 require "date"
 require_relative "summary_formatter"
+require_relative "limit_formatter"
 require_relative "../helpers/date_helper"
 require_relative "../helpers/period_definer"
 require_relative "../models/category"
@@ -260,6 +261,65 @@ module Commands
         summary = @rs.daily_summary(date)
         yesterday_summary = @rs.daily_summary(date - 1)
         SummaryFormatter.new(summary, yesterday_summary, period: :day).format(options: options)
+      end
+    end
+  end
+
+
+  module Limits
+    class ViewLimits
+      # @param ls [LimitService]
+      # @param bs [BudgetService]
+      def initialize(ls, bs)
+        @ls = ls
+        @bs = bs
+      end
+
+      def run(category: nil, merchant: nil, period_type: nil)
+        period_type = period_type.to_sym if period_type
+        category = @bs.find_category_by_title if category
+        rows = @ls.find_by_attrs(category:, merchant:, period_type:)
+        LimitFormatter.new.format(rows)
+      end
+    end
+      
+    class AddLimit
+      # @param bs [BudgetService]
+      # @param rs [ReportService]
+      # @param ls [LimitService]
+      # @param transactions [Prompts::TransactionPrompts]
+      # @param limits [Prompts::LimitPrompts]
+      # @param helper [Commands::Helpers]
+      def initialize(bs, rs, ls)
+        @bs = bs
+        @rs = rs
+        @ls = ls
+        @transactions = Prompts::TransactionPrompts.new(PROMPT, PASTEL)
+        @limits = Prompts::LimitPrompts.new(PROMPT, PASTEL)
+        @helper = Commands::Helpers.new(bs, transaction_prompts: @transactions, rs: @rs)
+      end
+
+      def run(merchant: nil, category: nil, amount: nil, period_type: nil)
+        category = @bs.find_category_by_title if category
+        amount ||= @limits.get_amount
+        period_type ||= @limits.get_period_type
+
+        unless merchant || category
+          res = @limits.get_category_or_merchant
+          if res == :merchant
+            merchant = @helper.choose_merchant
+          else 
+            category = @helper.get_category
+          end
+        end
+        
+        @ls.create_limit(
+          category: category,
+          merchant: merchant,
+          amount: amount,
+          period_type: period_type
+        )
+        puts PASTEL.bold "Limit for #{category ? PASTEL.public_send(category.colour, category.title) : merchant} created successfully! Amount: #{amount}, nature: #{period_type}"
       end
     end
   end
