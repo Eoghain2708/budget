@@ -98,6 +98,11 @@ module Prompts
     def get_period_type
       @prompt.select("What is period for this limit?", %w(daily weekly monthly yearly)).to_sym
     end
+
+    # @return [Float]
+    def get_amount
+      @prompt.ask("Enter a float value for the limit amount")
+    end
   end
   
 end

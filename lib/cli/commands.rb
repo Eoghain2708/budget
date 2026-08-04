@@ -3,6 +3,7 @@ require "pastel"
 require_relative "prompts"
 require "date"
 require_relative "summary_formatter"
+require_relative "limit_formatter"
 require_relative "../helpers/date_helper"
 require_relative "../helpers/period_definer"
 require_relative "../models/category"
@@ -289,18 +290,18 @@ module Commands
       # @param transactions [Prompts::TransactionPrompts]
       # @param limits [Prompts::LimitPrompts]
       # @param helper [Commands::Helpers]
-      def initialize(bs, rs, ls, transactions, limits, helper)
+      def initialize(bs, rs, ls)
         @bs = bs
         @rs = rs
         @ls = ls
-        @transactions = transactions
-        @limits = limits
-        @helper = helper
+        @transactions = Prompts::TransactionPrompts.new(PROMPT, PASTEL)
+        @limits = Prompts::LimitPrompts.new(PROMPT, PASTEL)
+        @helper = Commands::Helpers.new(bs, transaction_prompts: @transactions, rs: @rs)
       end
 
-      def run(merchant: false, category: false, amount: nil, period_type: nil)
+      def run(merchant: nil, category: nil, amount: nil, period_type: nil)
         category = @bs.find_category_by_title if category
-        amount ||= @transactions.get_price
+        amount ||= @limits.get_amount
         period_type ||= @limits.get_period_type
 
         unless merchant || category
@@ -311,13 +312,14 @@ module Commands
             category = @helper.get_category
           end
         end
-
+        
         @ls.create_limit(
           category: category,
           merchant: merchant,
           amount: amount,
           period_type: period_type
         )
+        puts PASTEL.bold "Limit for #{category ? PASTEL.public_send(category.colour, category.title) : merchant} created successfully! Amount: #{amount}, nature: #{period_type}"
       end
     end
   end

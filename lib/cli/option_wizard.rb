@@ -42,4 +42,17 @@ module OptionWizard
     end.parse!(into: params)
     params
   end
+
+  # @param argv [Array<String>]
+  # @return [Hash<String, String>]
+  def self.parse_limit_opts(argv)
+    params = {}
+    OptionParser.new do |opts|
+      opts.on('--category STRING', String)
+      opts.on('--merchant STRING', String)
+      opts.on('--period_type STRING', String)
+    end.parse!(into: params)
+    params
+  end
+    
 end

@@ -11,8 +11,10 @@ class CLI
     @database = Database.connection()
     category_repo = CategoryRepository.new(@database)
     transaction_repo = TransactionRepository.new(@database, category_repo)
+    limit_repo = LimitRepository.new(@database, category_repo)
     @bs = BudgetService.new(category_repo, transaction_repo)
     @rs = ReportService.new(category_repo, transaction_repo)
+    @ls = LimitService.new(limit_repo)
   end
 
 
@@ -26,6 +28,22 @@ class CLI
       return
     end
     case command.downcase.strip
+
+    when "limit", "l"
+      action = argv&.shift
+      unless action
+        errorise("You must include an action: add | delete | edit | see")
+      end
+
+      case action.strip.downcase
+      when "add", "a"
+        options = OptionWizard.parse_limit_opts(argv)
+        amount = argv.shift&.to_f unless argv.empty?
+        Commands::Limits::AddLimit.new(@bs, @rs, @ls).run(amount: amount, **options)
+
+      when "see"
+        Commands::Limits::ViewLimits.new(@ls, @bs).run
+      end
 
     # adding transactions
     when "transaction", "trans", "t"

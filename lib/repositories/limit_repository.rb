@@ -14,11 +14,11 @@ class LimitRepository
   # @param id [Integer]
   # @return [Limit | nil]
   def find(id)
-    row = @db.get_first_row <<~SQL
+    row = @db.get_first_row(<<~SQL,
       SELECT * FROM limits 
       WHERE id = ?
     SQL
-    [id]
+    [id])
 
     return nil unless row
     build_limit(row)
@@ -28,11 +28,11 @@ class LimitRepository
   # @param id [Integer]
   # @return [Boolean]
   def delete(id)
-    @db.execute <<~SQL
+    @db.execute(<<~SQL,
       DELETE * FROM limits
       WHERE id = ?
     SQL
-    [id]
+    [id])
 
     return true if @db.changes > 0
     return false
@@ -41,11 +41,11 @@ class LimitRepository
   # @param category [Category]
   # @return [Array<Limit> | nil]
   def find_by_category(category)
-    rows = @db.execute <<~SQL
+    rows = @db.execute(<<~SQL,
       SELECT * FROM limits
       WHERE category_id = ?
     SQL
-    [category.id]
+    [category.id])
 
     return nil unless rows 
     
@@ -57,11 +57,11 @@ class LimitRepository
   # @param merchant [String]
   # @return [Array<Limit> | nil]
   def find_by_merchant(merchant)
-    rows = @db.execute <<~SQL
+    rows = @db.execute(<<~SQL,
       SELECT * FROM limits
       WHERE LOWER(merchant) = ?
     SQL
-    [merchant.downcase]
+    [merchant.downcase])
 
     return nil unless rows
 
@@ -75,12 +75,12 @@ class LimitRepository
   # @return [Array<Limit> | nil]
   def find_by_merchant_and_period_type(merchant, period_type:)
     raise ArgumentError, "Period type must be supplied" unless period_type
-    rows = @db.execute <<~SQL
+    rows = @db.execute(<<~SQL,
       SELECT * FROM limits
       WHERE LOWER(merchant) = ?
       AND period_type = ?
     SQL
-    [merchant.downcase, period_type.to_s]
+    [merchant.downcase, period_type.to_s])
 
     return nil unless rows
 
@@ -92,12 +92,12 @@ class LimitRepository
   # @return [Array<Limit> | nil]
   def find_by_category_and_period_type(category, period_type:)
     raise ArgumentError, "Period type must be supplied" unless period_type
-    rows = @db.execute <<~SQL
+    rows = @db.execute(<<~SQL,
       SELECT * FROM limits
       WHERE category_id = ? 
       AND period_type = ?
     SQL
-    [category.id, period_type.to_s]
+    [category.id, period_type.to_s])
 
     return nil unless rows
 
@@ -107,11 +107,11 @@ class LimitRepository
   # @param period_type [Symbol]
   # @return [Array<Limit> | nil]
   def find_by_period_type(period_type)
-    rows = @db.execute <<~SQL
+    rows = @db.execute(<<~SQL,
       SELECT * FROM limits
       WHERE period_type = ?
     SQL
-    [period_type.to_s]
+    [period_type.to_s])
 
     return nil unless rows
 
@@ -120,38 +120,51 @@ class LimitRepository
 
   # @return [Array<Limit> | nil]
   def all
-    rows = @db.execute("SELET * FROM limits")
-    return nil unless rows
+    rows = @db.execute <<~SQL
+      SELECT limits.*,
+      categories.title AS category_title
+      FROM limits
+      LEFT JOIN categories
+        ON limits.category_id = categories.id
+    SQL
+
     rows.map { |r| build_limit(r) }
   end
 
   # @param limit [Limit]
   def save(limit)
-    limit.id == nil ? create(limit) : save(limit)
+    limit.id == nil ? create(limit) : update(limit)
   end
 
   def find_by_attrs(category: nil, merchant: nil, period_type: nil)
-    sql = "SELECT * FROM limits"
+    sql = <<~SQL
+      SELECT
+        limits.*,
+        categories.title AS category_title
+      FROM limits
+      LEFT JOIN categories
+        ON limits.category_id = categories.id
+    SQL
     conditions = []
     params = []
 
     if category
-      conditions << "category_id = ?"
+      conditions << "limits.category_id = ?"
       params << category.id
     end
 
     if merchant
-      conditions << "merchant = ?"
+      conditions << "limits.merchant = ?"
       params << merchant
     end
 
     if period_type
-      conditions << "period_type = ?"
+      conditions << "limits.period_type = ?"
       params << period_type.to_s
     end
 
     unless conditions.empty?
-      sql << "WHERE" << conditions.join(" AND ")
+      sql << " WHERE " << conditions.join(" AND ")
     end
 
     rows = @db.execute(sql, params)
@@ -186,11 +199,12 @@ class LimitRepository
   # @param limit [Limit]
   # @return [Limit]
   def create(limit)
-    @db.execute <<~SQL
+    pp limit.merchant
+    @db.execute(<<~SQL,
       INSERT INTO limits (category_id, merchant, period_type, amount)
       VALUES (?, ?, ?, ?)
     SQL
-    [limit.category.id, limit.merchant, limit.period_type, limit.amount]
+    [limit.category&.id, limit.merchant, limit.period_type.to_s, limit.amount])
 
     limit.id = @db.last_insert_row_id
     limit
@@ -199,12 +213,12 @@ class LimitRepository
   # @param limit [Limit]
   # @return [Limit]
   def update(limit)
-    @db.execute <<~SQL
+    @db.execute(<<~SQL,
       INSERT INTO limits (category_id, merchant, period_type, amount)
       VALUES (?, ?, ?, ?)
       WHERE id = ?
     SQL
-    [limit.category.id, limit.merchant, limit.period_type, limit.amount, limit.id]
+    [limit.category&.id, limit.merchant, limit.period_type.to_s, limit.amount, limit.id])
 
     limit
   end
