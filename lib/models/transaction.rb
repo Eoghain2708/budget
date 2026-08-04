@@ -20,7 +20,7 @@ class Transaction
   # @param merchant [String] - unspecified by default
   # @param nature [Symbol] - :expense, :income, :investment
   # @return [Transaction]
-  def initialize(id: nil, price:, date: Date.today, category:, merchant: "unspecified", nature:)
+  def initialize(id: nil, price:, date: Date.today, category:, merchant: "unspecified", nature: :expense)
     unless nature == :income || nature == :expense || nature == :investment
       raise ArgumentError, "Invalid nature"
     end
@@ -32,7 +32,6 @@ class Transaction
     @category = category
     @merchant = merchant
     @nature = nature
-    @recurring = recurring
   end
 
   def ==(other)
