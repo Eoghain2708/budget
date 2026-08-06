@@ -13,7 +13,6 @@ class ReportService
   end
 
   # @param from [Date]
-  # @param year [Integer]
   # @return [Array<Transaction>]
   def monthly_summary(from)
     to = Date.new(from.year, from.month, -1)
@@ -41,6 +40,16 @@ class ReportService
     return {} unless transactions
     
     build_summary(transactions, from: date, to: date)
+  end
+
+  # @param date [Date]
+  # @return [Array<Transaction>]
+  def yearly_summary(date) 
+    from = DateHelper.make_start_of_year(date)
+    to = Date.new(from.year, 12, 31)
+    transactions = @transactions.find_between(from: from, to: to)
+    build_summary(transactions, from: from, to: to) 
+
   end
 
 
@@ -80,7 +89,7 @@ class ReportService
   # merchant_breakdown: Hash
   # }
   def build_summary(transactions, from:, to:)
-    tracked_transactions = transactions.select { |t| t.counts_towards_net_gain? }
+    tracked_transactions = transactions.select { |t| t.counts_towards_net_gain? } # investments don't impact net gain
     investments = transactions.select { |t| t.investment? }
 
     result = {

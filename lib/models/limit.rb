@@ -10,7 +10,8 @@ class Limit
     raise ArgumentError, "Limit amount must be specified" unless amount
     raise ArgumentError, "Period (e.g week, month) must be specified" unless period_type
     raise ArgumentError, "Invalid period type: must be in #{ALLOWED_PERIOD_TYPES.to_s}" unless ALLOWED_PERIOD_TYPES.include?(period_type)
-    raise ArgumentError, "Either category or merchant (or both) must be specified" unless category || merchant
+    raise ArgumentError, "Either category or merchant must be specified" unless category || merchant
+    raise ArgumentError, "Limit cannot apply to both a merchant and a category" if category && merchant
 
     @id = id
     @category = category
@@ -33,5 +34,35 @@ class Limit
 
   def yearly?
     @period_type == :yearly
+  end
+
+  def category?
+    @category && !@merchant
+  end
+
+  def merchant?
+    @merchant && !@category
+  end
+
+  def type
+    return :category if category?
+    :merchant
+  end
+
+  def get_period_string
+    return "week" if weekly?
+    return "day" if daily?
+    return "month" if monthly?
+    return "year" if yearly?
+  end
+
+  def ==(other)
+    other.is_a?(Limit) && @id == other.id
+  end
+
+  alias eql? ==
+
+  def hash
+    @id.hash
   end
 end

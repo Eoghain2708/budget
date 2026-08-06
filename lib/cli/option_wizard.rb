@@ -50,7 +50,7 @@ module OptionWizard
     OptionParser.new do |opts|
       opts.on('--category STRING', String)
       opts.on('--merchant STRING', String)
-      opts.on('--period_type STRING', String)
+      opts.on('--period STRING', String)
     end.parse!(into: params)
     params
   end
