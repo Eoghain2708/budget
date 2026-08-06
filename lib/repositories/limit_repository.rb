@@ -121,11 +121,7 @@ class LimitRepository
   # @return [Array<Limit> | nil]
   def all
     rows = @db.execute <<~SQL
-      SELECT limits.*,
-      categories.title AS category_title
-      FROM limits
-      LEFT JOIN categories
-        ON limits.category_id = categories.id
+      SELECT * FROM limits
     SQL
 
     rows.map { |r| build_limit(r) }
@@ -138,28 +134,23 @@ class LimitRepository
 
   def find_by_attrs(category: nil, merchant: nil, period_type: nil)
     sql = <<~SQL
-      SELECT
-        limits.*,
-        categories.title AS category_title
-      FROM limits
-      LEFT JOIN categories
-        ON limits.category_id = categories.id
+      SELECT * FROM limits
     SQL
     conditions = []
     params = []
 
     if category
-      conditions << "limits.category_id = ?"
+      conditions << "category_id = ?"
       params << category.id
     end
 
     if merchant
-      conditions << "limits.merchant = ?"
+      conditions << "merchant = ?"
       params << merchant
     end
 
     if period_type
-      conditions << "limits.period_type = ?"
+      conditions << "period_type = ?"
       params << period_type.to_s
     end
 

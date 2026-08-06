@@ -270,16 +270,27 @@ module Commands
     class ViewLimits
       # @param ls [LimitService]
       # @param bs [BudgetService]
-      def initialize(ls, bs)
-        @ls = ls
+      # @param rs [ReportService]
+      def initialize(bs, rs, ls)
         @bs = bs
+        @rs = rs
+        @ls = ls
       end
 
       def run(category: nil, merchant: nil, period_type: nil)
         period_type = period_type.to_sym if period_type
         category = @bs.find_category_by_title if category
-        rows = @ls.find_by_attrs(category:, merchant:, period_type:)
-        LimitFormatter.new.format(rows)
+        date = Date.today
+        summaries = [
+          @rs.daily_summary(date),
+          @rs.weekly_summary(date),
+          @rs.monthly_summary(date),
+          @rs.yearly_summary(Date.today.year)
+        ]
+        limits = @ls.find_by_attrs(category:, merchant:, period_type:)
+        # sort in order of category => merchant (presuming category budgets are probably more important)
+        limits.sort_by! { |limit| limit.type }
+        LimitFormatter.new.format(limits, summaries)
       end
     end
       

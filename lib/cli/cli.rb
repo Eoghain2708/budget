@@ -42,7 +42,7 @@ class CLI
         Commands::Limits::AddLimit.new(@bs, @rs, @ls).run(amount: amount, **options)
 
       when "see"
-        Commands::Limits::ViewLimits.new(@ls, @bs).run
+        Commands::Limits::ViewLimits.new(@bs, @rs, @ls).run
       end
 
     # adding transactions
