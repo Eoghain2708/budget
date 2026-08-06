@@ -1,5 +1,5 @@
 require_relative "date_helper"
-
+require "date"
 class PeriodDefiner
 
   # @param date [String]
@@ -78,5 +78,11 @@ class PeriodDefiner
     end
   end
 
-
+  def self.define_year(date)
+    date = date.to_i
+    Date.new(date)
+  rescue
+    STDERR.puts "Invalid date".
+  end
+  end
 end
