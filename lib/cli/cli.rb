@@ -121,6 +121,15 @@ class CLI
       end
       date = PeriodDefiner.define_day(argv.first)
       Commands::Summaries::DailySummary.new(@bs, @rs).run(date, **options)
+    
+    when "year", "y"
+      options = OptionWizard.parse_summary_opts(argv)
+      if argv.empty?
+        print_date_error
+        return
+      end
+      date = PeriodDefiner.define_year(argv.first)
+      Commands::Summaries::YearlySummary.new(@bs, @rs).run(date, **options)
 
     
     when "category", "cat", "c"

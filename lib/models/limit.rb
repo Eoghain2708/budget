@@ -37,11 +37,11 @@ class Limit
   end
 
   def category?
-    @category && !@merchant
+    !@category.nil?
   end
 
   def merchant?
-    @merchant && !@category
+    !@merchant.nil?
   end
 
   def type
