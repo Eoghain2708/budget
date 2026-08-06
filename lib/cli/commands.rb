@@ -277,19 +277,24 @@ module Commands
         @ls = ls
       end
 
-      def run(category: nil, merchant: nil, period_type: nil)
-        period_type = period_type.to_sym if period_type
+      def run(category: nil, merchant: nil, period: nil)
+        period_type = period.to_sym if period
         category = @bs.find_category_by_title if category
         date = Date.today
-        summaries = [
-          @rs.daily_summary(date),
-          @rs.weekly_summary(date),
-          @rs.monthly_summary(date),
-          @rs.yearly_summary(Date.today.year)
-        ]
         limits = @ls.find_by_attrs(category:, merchant:, period_type:)
         # sort in order of category => merchant (presuming category budgets are probably more important)
         limits.sort_by! { |limit| limit.type }
+        if period_type
+          summaries = [@rs.public_send("#{period_type}_summary", date)]
+        else 
+          summaries = [
+          @rs.daily_summary(date),
+          @rs.weekly_summary(date),
+          @rs.monthly_summary(date),
+          @rs.yearly_summary(date)
+        ]
+        end
+        
         LimitFormatter.new.format(limits, summaries)
       end
     end

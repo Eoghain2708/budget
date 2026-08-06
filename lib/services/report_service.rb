@@ -42,15 +42,11 @@ class ReportService
     build_summary(transactions, from: date, to: date)
   end
 
-  # @param year [Integer]
+  # @param date [Date]
   # @return [Array<Transaction>]
-  def yearly_summary(year=Date.today.year) 
-    unless year.is_a?(Integer) && year <= Date.today.year && year > 2000
-      raise ArgumentError, "Invalid date"
-    end
-
-    from = Date.new(year)
-    to = Date.new(year, 12, 31)
+  def yearly_summary(date) 
+    from = DateHelper.make_start_of_year(date)
+    to = Date.new(from.year, 12, 31)
     transactions = @transactions.find_between(from: from, to: to)
     build_summary(transactions, from: from, to: to) 
 

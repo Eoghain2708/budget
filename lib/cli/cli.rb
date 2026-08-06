@@ -42,7 +42,8 @@ class CLI
         Commands::Limits::AddLimit.new(@bs, @rs, @ls).run(amount: amount, **options)
 
       when "see"
-        Commands::Limits::ViewLimits.new(@bs, @rs, @ls).run
+        options = OptionWizard.parse_limit_opts(argv)
+        Commands::Limits::ViewLimits.new(@bs, @rs, @ls).run(**options)
       end
 
     # adding transactions

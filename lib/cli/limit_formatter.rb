@@ -20,6 +20,7 @@ class LimitFormatter
   # @param limit [Limit]
   # @param summaries [Array<Hash>]
   def define_summary(limit, summaries)
+    return summaries.first if summaries.size == 1
     daily, weekly, monthly, yearly = summaries
     return daily if limit.daily?
     return weekly if limit.weekly?

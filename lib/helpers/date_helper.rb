@@ -9,6 +9,13 @@ module DateHelper
     date - days_since_monday
   end
 
+  # @param date [Date]
+  # @return [Date]
+  def self.make_start_of_year(date)
+    year = date.year
+    Date.new(year)
+  end
+
   class Weeks
     def self.this_week
       date = Date.today
