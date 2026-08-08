@@ -28,7 +28,7 @@ class LimitService
   # @param new_amount [Float]
   # @param new_period_type [Symbol]
   # @return [Limit]
-  def edit_limit(limit, new_category, new_merchant, new_amount, new_period_type)
+  def edit_limit(limit, new_category: nil, new_merchant: nil, new_amount: nil, new_period_type: nil)
     limit.category = new_category if new_category
     limit.new_merchant = new_merchant if new_merchant
     limit.new_amount = new_amount = new_amount

@@ -4,6 +4,16 @@ require_relative "../models/category"
 
 module Prompts
 
+  class General
+    def initialize(prompt)
+      @prompt = prompt
+    end
+
+    def confirmed
+      @prompt.ask("Are you sure?")
+    end
+  end
+
   class CategoryPrompts
     # @param prompt [TTY::Prompt]
     # @param pastel [Pastel]
@@ -102,6 +112,23 @@ module Prompts
     # @return [Float]
     def get_amount
       @prompt.ask("Enter a float value for the limit amount")
+    end
+
+    # @param limits [Array<Limit>]
+    # @return [Limit]
+    def get_limit(limits)
+      @prompt.select("Select a limit to delete", limits)
+    end
+
+    # @param limit [Limit] - needed to check if limit is merchant or category
+    def get_changes(limit)
+      choices = ["period-type, amount"]
+      if limit.merchant?
+        choices << "merchant"
+      else 
+        choices << "category"
+      end
+      @prompt.multi_select("Select the attributes you'd like to change:", choices, cycle: true)
     end
   end
   

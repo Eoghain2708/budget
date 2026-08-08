@@ -36,7 +36,7 @@ class CLI
       end
 
       case action.strip.downcase
-      when "add", "a"
+      when "set"
         options = OptionWizard.parse_limit_opts(argv)
         amount = argv.shift&.to_f unless argv.empty?
         Commands::Limits::AddLimit.new(@bs, @rs, @ls).run(amount: amount, **options)
@@ -44,7 +44,10 @@ class CLI
       when "see"
         options = OptionWizard.parse_limit_opts(argv)
         Commands::Limits::ViewLimits.new(@bs, @rs, @ls).run(**options)
+      when "delete", "del"
+        Commands::Limits::DeleteLimit.new(@ls).run
       end
+
 
     # adding transactions
     when "transaction", "trans", "t"

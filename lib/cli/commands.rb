@@ -53,7 +53,7 @@ module Commands
       def initialize(bs)
         @bs = bs
         @transaction_prompts = Prompts::TransactionPrompts.new(PROMPT, PASTEL)
-        @helper = Helpers.new(bs, transaction_prompts: @transaction_prompts)
+        @helper = Helpers.new(bs: @bs, transaction_prompts: @transaction_prompts)
       end
 
       def run
@@ -69,7 +69,7 @@ module Commands
         @bs = bs
         @category_prompts = Prompts::CategoryPrompts.new(PROMPT, PASTEL)
         @transaction_prompts = Prompts::TransactionPrompts.new(PROMPT, PASTEL)
-        @helper = Helpers.new(bs, transaction_prompts: @transaction_prompts, category_prompts: @category_prompts)
+        @helper = Helpers.new(bs: @bs, transaction_prompts: @transaction_prompts, category_prompts: @category_prompts)
       end
       
       def run
@@ -99,7 +99,7 @@ module Commands
         @rs = rs
         @transaction_prompts = Prompts::TransactionPrompts.new(PROMPT, PASTEL)
         @category_prompts = Prompts::CategoryPrompts.new(PROMPT, PASTEL)
-        @helper = Helpers.new(@bs, rs: @rs, transaction_prompts: @transaction_prompts, category_prompts: @category_prompts)
+        @helper = Helpers.new(bs: @bs, rs: @rs, transaction_prompts: @transaction_prompts, category_prompts: @category_prompts)
         Dotenv.load
       end
 
@@ -133,7 +133,7 @@ module Commands
         @bs = bs
         @rs = rs
         @transaction_prompts = Prompts::TransactionPrompts.new(PROMPT, PASTEL)
-        @helper = Helpers.new(@bs, rs: @rs, transaction_prompts: @transaction_prompts)
+        @helper = Helpers.new(bs: @bs, rs: @rs, transaction_prompts: @transaction_prompts)
       end
 
       def run(from:, to: from)
@@ -151,7 +151,7 @@ module Commands
         @bs = bs
         @rs = rs
         @transaction_prompts = Prompts::TransactionPrompts.new(PROMPT, PASTEL)
-        @helper = Helpers.new(@bs, rs: @rs, transaction_prompts: @transaction_prompts)
+        @helper = Helpers.new(bs: @bs, rs: @rs, transaction_prompts: @transaction_prompts)
       end
 
       def run(from:, to: from)
@@ -182,27 +182,17 @@ module Commands
         end
 
         # print out changes
-        puts PASTEL.bold.bright_yellow previous_and_new(choice.category.title, new_category.title, "Category") if new_category
+        puts PASTEL.bold.bright_yellow @helper.previous_and_new(choice.category.title, new_category.title, "Category") if new_category
 
-        puts PASTEL.bold.bright_blue previous_and_new(choice.date.to_s, new_date, "Date") if new_date
-        puts PASTEL.bold.cyan previous_and_new(choice.merchant, new_merchant, "Merchant") if new_merchant
-        puts PASTEL.bold previous_and_new(choice.price, new_price, "Price") if new_price
-        puts PASTEL.bold previous_and_new(choice.nature, new_nature, "Nature") if new_nature
+        puts PASTEL.bold.bright_blue @helper.previous_and_new(choice.date.to_s, new_date, "Date") if new_date
+        puts PASTEL.bold.cyan @helper.previous_and_new(choice.merchant, new_merchant, "Merchant") if new_merchant
+        puts PASTEL.bold @helper.previous_and_new(choice.price, new_price, "Price") if new_price
+        puts PASTEL.bold @helper.previous_and_new(choice.nature, new_nature, "Nature") if new_nature
         @bs.edit_transaction(choice.id, new_price: new_price, new_category: new_category, new_date: new_date, new_merchant: new_merchant, new_nature: new_nature)
         puts PASTEL.bold.bright_green("Edited successfully!")
       end
 
-      # @param attribute [String]
-      # @param previous [String]
-      # @param new [String]
-      # @return [String]
-      def previous_and_new(previous, new, attribute=nil)
-        if attribute
-          return "#{attribute}: #{PASTEL.bold.bright_red previous} => #{PASTEL.bold.bright_green new}"
-        else 
-          puts "#{PASTEL.bold.bright_red previous} => #{PASTEL.bold.bright_green new}"
-        end
-      end
+      
     end
 
     
@@ -330,7 +320,7 @@ module Commands
         @ls = ls
         @transactions = Prompts::TransactionPrompts.new(PROMPT, PASTEL)
         @limits = Prompts::LimitPrompts.new(PROMPT, PASTEL)
-        @helper = Commands::Helpers.new(bs, transaction_prompts: @transactions, rs: @rs)
+        @helper = Commands::Helpers.new(bs: bs, transaction_prompts: @transactions, rs: @rs)
       end
 
       def run(merchant: nil, category: nil, amount: nil, period_type: nil)
@@ -356,6 +346,58 @@ module Commands
         puts PASTEL.bold "Limit for #{category ? PASTEL.public_send(category.colour, category.title) : merchant} created successfully! Amount: #{amount}, nature: #{period_type}"
       end
     end
+
+    class DeleteLimit
+      # @param ls [LimitService]
+      def initialize(ls)
+        @ls = ls
+        @limit_prompts = Prompts::LimitPrompts.new(PROMPT, PASTEL)
+        @general_prompts = Prompts::General.new(PROMPT)
+        @helper = Commands::Helpers.new(ls: @ls)
+      end
+
+      def run
+        limit = @helper.choose_limit
+
+        if @general_prompts.confirmed
+          @ls.delete_limit(limit.id)
+          puts PASTEL.bold("Limit for #{limit.category ? limit.category : limit.merchant} deleted successfully!")
+          return
+        end
+        puts "Cancelled."
+        return
+      end
+    end
+
+    class EditLimit
+      # @param bs [BudgetService]
+      # @param rs [ReportService]
+      # @param ls [LimitService]
+      def initialize(bs, rs, ls)
+        @bs = bs
+        @rs = rs
+        @ls = ls
+        @helper = Commands::Helpers.new(bs: bs, rs: rs, ls: ls)
+        @limit_prompts = Prompts::LimitPrompts.new(PROMPT, PASTEL)
+      end
+
+      def run
+        limit = @helper.choose_limit
+        changes = @limit_prompts.get_changes
+
+        new_category = @helper.get_category if changes.include? "category"
+        new_merchant = @helper.choose_merchant if changes.include? "merchant"
+        new_period_type = @limit_prompts.get_period_type if changes.include? "period-type"
+
+        # print out changes
+        puts PASTEL.bold.bright_yellow @helper.previous_and_new(limit.category.title, new_category.title, "Category") if new_category
+        puts PASTEL.bold.cyan @helper.previous_and_new(limit.merchant, new_merchant, "Merchant") if new_merchant
+        puts PASTEL.bold @helper.previous_and_new(limit.period_type, new_period_type, "Period") if new_period_type
+
+        @ls.edit_limit(limit, new_category:, new_merchant:, new_period_type:)
+        puts PASTEL.bold.bright_green "Edited successfully!"
+      end
+    end
   end
 
 
@@ -366,11 +408,23 @@ module Commands
     # @param transaction_prompts [Prompts::TransactionPrompts]
     # @param category_prompts [Prompts::CategoryPrompts]
     # @param rs [ReportService]
-    def initialize(bs, transaction_prompts: nil, category_prompts: nil, rs: nil)
+    def initialize(bs: nil, transaction_prompts: nil, category_prompts: nil, rs: nil, ls: nil)
       @bs = bs
       @rs = rs
       @transaction_prompts = transaction_prompts
       @category_prompts = category_prompts
+    end
+
+    # @param attribute [String]
+    # @param previous [String]
+    # @param new [String]
+    # @return [String]
+    def previous_and_new(previous, new, attribute=nil)
+        if attribute
+          return "#{attribute}: #{PASTEL.bold.bright_red previous} => #{PASTEL.bold.bright_green new}"
+        else 
+          puts "#{PASTEL.bold.bright_red previous} => #{PASTEL.bold.bright_green new}"
+        end
     end
 
     def get_category
@@ -473,6 +527,21 @@ module Commands
 
       choice = @transaction_prompts.get_transaction(choices)
       return choice
+    end
+
+    def choose_limit
+        limits = @ls.all_limits
+        if limits.empty?
+          puts PASTEL.bright_red "No limits found."
+        end
+        choices = limits.map do |limit|
+          area = limit.category ? limit.category : limit.merchant
+          {
+            name: "#{PASTEL.bold(area)} | #{limit.period_type.upcase} | #{limit.amount}",
+            value: limit
+          }
+        end
+        @limit_prompts.get_limit(choices)
     end
 
     # @param t [Transaction]
