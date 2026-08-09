@@ -1,7 +1,7 @@
-require "date"
+require 'date'
 
 class Transaction
-  attr_accessor :id 
+  attr_accessor :id
   # @return [Float]
   attr_accessor :price
   # @return [Date]
@@ -20,12 +20,11 @@ class Transaction
   # @param merchant [String] - unspecified by default
   # @param nature [Symbol] - :expense, :income, :investment
   # @return [Transaction]
-  def initialize(id: nil, price:, date: Date.today, category:, merchant: "unspecified", nature: :expense)
-    unless nature == :income || nature == :expense || nature == :investment
-      raise ArgumentError, "Invalid nature"
-    end
-    raise ArgumentError, "Invalid Price" unless price.positive?
-    raise ArgumentError, "Invalid Date" if date > Date.today
+  def initialize(price:, category:, id: nil, date: Date.today, merchant: 'unspecified', nature: :expense)
+    raise ArgumentError, 'Invalid nature' unless %i[income expense investment].include?(nature)
+    raise ArgumentError, 'Invalid Price' unless price.positive?
+    raise ArgumentError, 'Invalid Date' if date > Date.today
+
     @id = id
     @price = price
     @date = date

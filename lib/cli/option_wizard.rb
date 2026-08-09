@@ -1,10 +1,9 @@
-require "optparse"
+require 'optparse'
 
 module OptionWizard
-  
   # @param argv [Array<String>]
   # @return [Hash<Symbol, String>]
-  def self.parse_transaction_opts(argv)
+  def self.parse_transaction_opts(_argv)
     params = {}
     OptionParser.new do |opts|
       opts.on('--date STRING', String)
@@ -18,7 +17,7 @@ module OptionWizard
 
   # @param argv [Array<String>]
   # @return [Hash<Symbol, String>]
-  def self.parse_transaction_delete_and_edit_opts(argv)
+  def self.parse_transaction_delete_and_edit_opts(_argv)
     params = {}
     OptionParser.new do |opts|
       opts.on('--to STRING', String)
@@ -34,7 +33,7 @@ module OptionWizard
 
   # @param argv [Array<String>]
   # @return [Hash<String, Boolean>]
-  def self.parse_summary_opts(argv)
+  def self.parse_summary_opts(_argv)
     params = {}
     OptionParser.new do |opts|
       opts.on('--short')
@@ -45,7 +44,7 @@ module OptionWizard
 
   # @param argv [Array<String>]
   # @return [Hash<String, String>]
-  def self.parse_limit_opts(argv)
+  def self.parse_limit_opts(_argv)
     params = {}
     OptionParser.new do |opts|
       opts.on('--category STRING', String)
@@ -54,5 +53,4 @@ module OptionWizard
     end.parse!(into: params)
     params
   end
-    
 end

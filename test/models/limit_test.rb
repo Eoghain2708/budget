@@ -1,14 +1,14 @@
-require_relative "../test_helper"
+require_relative '../test_helper'
 
 class LimitTest < Minitest::Test
   def setup
     @category = Category.new(
       id: 1,
-      title: "Personal",
-      colour: "bright_cyan"
+      title: 'Personal',
+      colour: 'bright_cyan'
     )
 
-    @merchant = "Lidl"
+    @merchant = 'Lidl'
   end
 
   # --------------------
@@ -74,7 +74,7 @@ class LimitTest < Minitest::Test
       )
     end
 
-    assert_equal "Limit amount must be specified", error.message
+    assert_equal 'Limit amount must be specified', error.message
   end
 
   def test_requires_period_type
@@ -85,7 +85,7 @@ class LimitTest < Minitest::Test
       )
     end
 
-    assert_equal "Period (e.g week, month) must be specified", error.message
+    assert_equal 'Period (e.g week, month) must be specified', error.message
   end
 
   def test_rejects_invalid_period_type
@@ -108,7 +108,7 @@ class LimitTest < Minitest::Test
       )
     end
 
-    assert_equal "Either category or merchant must be specified", error.message
+    assert_equal 'Either category or merchant must be specified', error.message
   end
 
   def test_rejects_category_and_merchant_together
@@ -122,7 +122,7 @@ class LimitTest < Minitest::Test
     end
 
     assert_equal(
-      "Limit cannot apply to both a merchant and a category",
+      'Limit cannot apply to both a merchant and a category',
       error.message
     )
   end
@@ -226,25 +226,25 @@ class LimitTest < Minitest::Test
   def test_daily_period_string
     limit = build_limit(period_type: :daily)
 
-    assert_equal "day", limit.get_period_string
+    assert_equal 'day', limit.get_period_string
   end
 
   def test_weekly_period_string
     limit = build_limit(period_type: :weekly)
 
-    assert_equal "week", limit.get_period_string
+    assert_equal 'week', limit.get_period_string
   end
 
   def test_monthly_period_string
     limit = build_limit(period_type: :monthly)
 
-    assert_equal "month", limit.get_period_string
+    assert_equal 'month', limit.get_period_string
   end
 
   def test_yearly_period_string
     limit = build_limit(period_type: :yearly)
 
-    assert_equal "year", limit.get_period_string
+    assert_equal 'year', limit.get_period_string
   end
 
   # --------------------
@@ -268,7 +268,7 @@ class LimitTest < Minitest::Test
   def test_limit_is_not_equal_to_different_object
     limit = build_limit(id: 1)
 
-    refute_equal limit, "not a limit"
+    refute_equal limit, 'not a limit'
   end
 
   def test_equal_limits_have_same_hash

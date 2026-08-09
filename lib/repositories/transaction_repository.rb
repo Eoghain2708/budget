@@ -1,12 +1,12 @@
-require "sqlite3"
-require "date"
+require 'sqlite3'
+require 'date'
 class TransactionRepository
-  
   # @param db [SQLite3::Database]
   # @param category_repo [CategoryRepository]
   def initialize(db, category_repo)
     # @!attribute [SQLite3::Database]
-    raise ArgumentError, "db and category repository must exist" unless db && category_repo
+    raise ArgumentError, 'db and category repository must exist' unless db && category_repo
+
     @db = db
     # @!attribute [CategoryRepository]
     @category_repo = category_repo
@@ -15,7 +15,7 @@ class TransactionRepository
   # @param transaction [Transaction]
   # @return [Transaction]
   def save(transaction)
-    transaction.id == nil ? create(transaction) : update(transaction)
+    transaction.id.nil? ? create(transaction) : update(transaction)
   end
 
   # @param id [Integer]
@@ -47,6 +47,7 @@ class TransactionRepository
     )
 
     return [] unless rows
+
     rows.map do |row|
       build_transaction(row)
     end
@@ -64,6 +65,7 @@ class TransactionRepository
     )
 
     return [] unless rows
+
     rows.map do |row|
       build_transaction(row)
     end
@@ -84,7 +86,6 @@ class TransactionRepository
       build_transaction(row)
     end
   end
-
 
   # @param from [Date]
   # @param to [Date] - if not provided, defaults to Date.today
@@ -120,9 +121,9 @@ class TransactionRepository
 
   # @return [Array<Transaction>]
   def all
-    rows = @db.execute("SELECT * FROM transactions")
+    rows = @db.execute('SELECT * FROM transactions')
     return [] unless rows
-     
+
     rows.map do |row|
       build_transaction(row)
     end
@@ -133,17 +134,16 @@ class TransactionRepository
   # @return [Array<String>]
   def merchants
     rows = @db.execute(
-      <<~SQL,
+      <<~SQL
         SELECT DISTINCT merchant
         FROM transactions
         ORDER BY merchant;
       SQL
     )
     rows.map do |row|
-      row["merchant"]
+      row['merchant']
     end
   end
-
 
   # @param category [Category]
   # @return [Array<String>] string of merchants associated with that category
@@ -159,10 +159,9 @@ class TransactionRepository
     )
 
     rows.map do |row|
-      row["merchant"]
+      row['merchant']
     end
   end
-
 
   # @param from [Date]
   # @param to [Date]
@@ -171,38 +170,36 @@ class TransactionRepository
   # @param nature [String]
   # @return [Array<Transaction>]
   def filter_and_find(from: nil, to: nil, category: nil, merchant: nil, nature: nil)
-    sql = "SELECT * FROM transactions"
+    sql = 'SELECT * FROM transactions'
     conditions = []
     params = []
 
     if from
-      conditions << "date >= ?"
+      conditions << 'date >= ?'
       params << from.iso8601
     end
 
     if to
-      conditions << "date <= ?"
+      conditions << 'date <= ?'
       params << to.iso8601
     end
 
     if category
-      conditions << "category_id = ?"
+      conditions << 'category_id = ?'
       params << category.id
     end
 
-    if merchant 
-      conditions << "merchant = ?"
+    if merchant
+      conditions << 'merchant = ?'
       params << merchant
     end
 
     if nature
-      conditions << "nature = ?"
+      conditions << 'nature = ?'
       params << nature
     end
 
-    unless conditions.empty?
-      sql << "WHERE" << conditions.join(" AND ")
-    end
+    sql << 'WHERE' << conditions.join(' AND ') unless conditions.empty?
 
     rows = @db.execute(sql, params)
 
@@ -211,8 +208,8 @@ class TransactionRepository
     end
   end
 
-  
   private
+
   # @param row [Hash]
   # = {
   # id => Integer,
@@ -221,23 +218,21 @@ class TransactionRepository
   # category_id => Integer,
   # merchant => String,
   # nature => Symbol
-  # 
+  #
   # }
   # @return [Transaction]
   def build_transaction(row)
-    category = @category_repo.find(row["category_id"])
+    category = @category_repo.find(row['category_id'])
 
     Transaction.new(
-      id: row["id"],
-      price: row["price"],
-      date: Date.parse(row["date"]),
+      id: row['id'],
+      price: row['price'],
+      date: Date.parse(row['date']),
       category: category,
-      merchant: row["merchant"],
-      nature: row["nature"].to_sym
-
+      merchant: row['merchant'],
+      nature: row['nature'].to_sym
     )
   end
-
 
   # @param transaction [Transaction]
   # @return [Transaction]
@@ -247,7 +242,8 @@ class TransactionRepository
         INSERT INTO transactions (price, date, category_id, merchant, nature)
         VALUES (?, ?, ?, ?, ?)
       SQL
-      [transaction.price, transaction.date.iso8601, transaction.category.id, transaction.merchant, transaction.nature.to_s]
+      [transaction.price, transaction.date.iso8601, transaction.category.id, transaction.merchant,
+       transaction.nature.to_s]
     )
     transaction.id = @db.last_insert_row_id
     transaction
@@ -262,7 +258,8 @@ class TransactionRepository
         SET price = ?, date = ?, category_id = ?, merchant = ?, nature = ?
         WHERE id = ?
       SQL
-      [transaction.price, transaction.date.iso8601, transaction.category.id, transaction.merchant, transaction.nature.to_s, transaction.id]
+      [transaction.price, transaction.date.iso8601, transaction.category.id, transaction.merchant,
+       transaction.nature.to_s, transaction.id]
     )
 
     transaction

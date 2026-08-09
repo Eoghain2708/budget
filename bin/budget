@@ -1,16 +1,16 @@
 #!/usr/bin/env ruby
 
-require_relative "../lib/budget"
+require_relative '../lib/budget'
 
 begin
-CLI.new.run(ARGV)
+  CLI.new.run(ARGV)
 rescue TTY::Reader::InputInterrupt, Interrupt
-  puts ""
-  puts Pastel.new.bright_red.bold "Cancelled."
+  puts ''
+  puts Pastel.new.bright_red.bold 'Cancelled.'
 rescue Date::Error
-  puts ""
-  puts Pastel.new.bright_red.bold "Invalid date"
+  puts ''
+  puts Pastel.new.bright_red.bold 'Invalid date'
 rescue OptionParser::InvalidOption
-  puts ""
-  puts Pastel.new.bright_red.bold("Invalid option")
+  puts ''
+  puts Pastel.new.bright_red.bold('Invalid option')
 end

@@ -1,79 +1,81 @@
-require_relative "date_helper"
-require "date"
+require_relative 'date_helper'
+require 'date'
 class PeriodDefiner
-
   # @param date [String]
   def self.define_week(date)
-    raise ArgumentError, "Date cannot be nil" unless date
+    raise ArgumentError, 'Date cannot be nil' unless date
+
     stripped = date.strip.downcase
     case stripped
-    when "thisweek", "tweek", "tw"
+    when 'thisweek', 'tweek', 'tw'
       DateHelper::Weeks.this_week
-    when "lastweek", "lweek", "lw"
+    when 'lastweek', 'lweek', 'lw'
       DateHelper::Weeks.last_week
-    else 
+    else
       DateHelper.parse_arg(stripped)
     end
   end
 
   # @param date [String]
   def self.define_day(date)
-    raise ArgumentError, "Date cannot be nil" unless date
+    raise ArgumentError, 'Date cannot be nil' unless date
+
     stripped = date.strip.downcase
     case stripped
-    when "today", "tod", "td"
+    when 'today', 'tod', 'td'
       DateHelper::Weeks.today
-    when "yesterday", "yes"
+    when 'yesterday', 'yes'
       DateHelper::Weeks.yesterday
-    when "friday", "fri", "tfri"
+    when 'friday', 'fri', 'tfri'
       DateHelper::Weeks.friday
-    when "saturday", "sat", "tsat"
+    when 'saturday', 'sat', 'tsat'
       DateHelper::Weeks.saturday
-    when "sunday", "sun", "tsun"
+    when 'sunday', 'sun', 'tsun'
       DateHelper::Weeks.sunday
-    when "monday", "mon", "tmon"
+    when 'monday', 'mon', 'tmon'
       DateHelper::Weeks.monday
-    when "tuesday", "tue", "ttue"
+    when 'tuesday', 'tue', 'ttue'
       DateHelper::Weeks.tuesday
-    when "wednesday", "wed", "twed"
+    when 'wednesday', 'wed', 'twed'
       DateHelper::Weeks.wednesday
-    when "thursday", "thu", "tthu"
+    when 'thursday', 'thu', 'tthu'
       DateHelper::Weeks.thursday
-    else 
+    else
       DateHelper.parse_arg(stripped)
     end
   end
 
   # @param date [String]
   def self.define_month(date)
-    raise ArgumentError, "Date cannot be nil" unless date
+    raise ArgumentError, 'Date cannot be nil' unless date
+
     stripped = date.strip.downcase
     case stripped
-    when "january", "jan", "1"
+    when 'january', 'jan', '1'
       DateHelper::Months.january
-    when "february", "feb", "2"
+    when 'february', 'feb', '2'
       DateHelper::Months.february
-    when "march", "mar", "3"
+    when 'march', 'mar', '3'
       DateHelper::Months.march
-    when "april", "apr", "4"
+    when 'april', 'apr', '4'
       DateHelper::Months.april
-    when "may", "5"
+    when 'may', '5'
       DateHelper::Months.may
-    when "june", "jun", "6"
+    when 'june', 'jun', '6'
       DateHelper::Months.june
-    when "july", "jul", "7"
+    when 'july', 'jul', '7'
       DateHelper::Months.july
-    when "august", "aug", "8"
+    when 'august', 'aug', '8'
       DateHelper::Months.august
-    when "september", "sep", "9"
+    when 'september', 'sep', '9'
       DateHelper::Months.september
-    when "october", "oct", "10"
+    when 'october', 'oct', '10'
       DateHelper::Months.october
-    when "november", "nov", "11"
+    when 'november', 'nov', '11'
       DateHelper::Months.november
-    when "december", "dec", "12"
+    when 'december', 'dec', '12'
       DateHelper::Months.december
-    else 
+    else
       DateHelper.parse_arg(stripped)
     end
   end
@@ -81,8 +83,8 @@ class PeriodDefiner
   def self.define_year(date)
     date = date.to_i
     Date.new(date)
-  rescue
-    STDERR.puts "Invalid date".
-  end
+  rescue StandardError
+    warn 'Invalid date'
+      .end
   end
 end

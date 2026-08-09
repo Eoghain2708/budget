@@ -1,11 +1,11 @@
 class LimitRepository
-
   # @param db [SQLite3::Database]
   # @param category_repo [CategoryRepository]
   def initialize(db, category_repo)
     # @!attribute [SQLite3::Database]
-    raise ArgumentError, "db must exist" unless db
-    raise ArgumentError, "category repository must exist" unless category_repo
+    raise ArgumentError, 'db must exist' unless db
+    raise ArgumentError, 'category repository must exist' unless category_repo
+
     @db = db
 
     @crepo = category_repo
@@ -15,15 +15,15 @@ class LimitRepository
   # @return [Limit | nil]
   def find(id)
     row = @db.get_first_row(<<~SQL,
-      SELECT * FROM limits 
+      SELECT * FROM limits#{' '}
       WHERE id = ?
     SQL
-    [id])
+                            [id])
 
     return nil unless row
+
     build_limit(row)
   end
-
 
   # @param id [Integer]
   # @return [Boolean]
@@ -32,10 +32,11 @@ class LimitRepository
       DELETE * FROM limits
       WHERE id = ?
     SQL
-    [id])
+                [id])
 
     return true if @db.changes > 0
-    return false
+
+    false
   end
 
   # @param category [Category]
@@ -45,10 +46,10 @@ class LimitRepository
       SELECT * FROM limits
       WHERE category_id = ?
     SQL
-    [category.id])
+                       [category.id])
 
-    return nil unless rows 
-    
+    return nil unless rows
+
     rows.map do |r|
       build_limit(r)
     end
@@ -61,7 +62,7 @@ class LimitRepository
       SELECT * FROM limits
       WHERE LOWER(merchant) = ?
     SQL
-    [merchant.downcase])
+                       [merchant.downcase])
 
     return nil unless rows
 
@@ -74,13 +75,14 @@ class LimitRepository
   # @param period_type [Symbol]
   # @return [Array<Limit> | nil]
   def find_by_merchant_and_period_type(merchant, period_type:)
-    raise ArgumentError, "Period type must be supplied" unless period_type
+    raise ArgumentError, 'Period type must be supplied' unless period_type
+
     rows = @db.execute(<<~SQL,
       SELECT * FROM limits
       WHERE LOWER(merchant) = ?
       AND period_type = ?
     SQL
-    [merchant.downcase, period_type.to_s])
+                       [merchant.downcase, period_type.to_s])
 
     return nil unless rows
 
@@ -91,17 +93,18 @@ class LimitRepository
   # @param period_type [Symbol]
   # @return [Array<Limit> | nil]
   def find_by_category_and_period_type(category, period_type:)
-    raise ArgumentError, "Period type must be supplied" unless period_type
+    raise ArgumentError, 'Period type must be supplied' unless period_type
+
     rows = @db.execute(<<~SQL,
       SELECT * FROM limits
-      WHERE category_id = ? 
+      WHERE category_id = ?#{' '}
       AND period_type = ?
     SQL
-    [category.id, period_type.to_s])
+                       [category.id, period_type.to_s])
 
     return nil unless rows
 
-    rows.map { |r| build_limit(r)}
+    rows.map { |r| build_limit(r) }
   end
 
   # @param period_type [Symbol]
@@ -111,7 +114,7 @@ class LimitRepository
       SELECT * FROM limits
       WHERE period_type = ?
     SQL
-    [period_type.to_s])
+                       [period_type.to_s])
 
     return nil unless rows
 
@@ -129,7 +132,7 @@ class LimitRepository
 
   # @param limit [Limit]
   def save(limit)
-    limit.id == nil ? create(limit) : update(limit)
+    limit.id.nil? ? create(limit) : update(limit)
   end
 
   def find_by_attrs(category: nil, merchant: nil, period_type: nil)
@@ -140,32 +143,28 @@ class LimitRepository
     params = []
 
     if category
-      conditions << "category_id = ?"
+      conditions << 'category_id = ?'
       params << category.id
     end
 
     if merchant
-      conditions << "merchant = ?"
+      conditions << 'merchant = ?'
       params << merchant
     end
 
     if period_type
-      conditions << "period_type = ?"
+      conditions << 'period_type = ?'
       params << period_type.to_s
     end
 
-    unless conditions.empty?
-      sql << " WHERE " << conditions.join(" AND ")
-    end
+    sql << ' WHERE ' << conditions.join(' AND ') unless conditions.empty?
 
     rows = @db.execute(sql, params)
     rows.map { |r| build_limit(r) }
   end
 
-
-  
-
   private
+
   # @param row [Hash]
   # @example {
   # id: Integer,
@@ -176,14 +175,14 @@ class LimitRepository
   # period: String
   # }
   def build_limit(row)
-    category = @crepo.find(row["category_id"])
+    category = @crepo.find(row['category_id'])
 
     Limit.new(
-      id: row["id"],
+      id: row['id'],
       category: category,
-      merchant: row["merchant"],
-      amount: row["amount"],
-      period_type: row["period_type"].to_sym
+      merchant: row['merchant'],
+      amount: row['amount'],
+      period_type: row['period_type'].to_sym
     )
   end
 
@@ -195,7 +194,7 @@ class LimitRepository
       INSERT INTO limits (category_id, merchant, period_type, amount)
       VALUES (?, ?, ?, ?)
     SQL
-    [limit.category&.id, limit.merchant, limit.period_type.to_s, limit.amount])
+                [limit.category&.id, limit.merchant, limit.period_type.to_s, limit.amount])
 
     limit.id = @db.last_insert_row_id
     limit
@@ -209,10 +208,8 @@ class LimitRepository
       VALUES (?, ?, ?, ?)
       WHERE id = ?
     SQL
-    [limit.category&.id, limit.merchant, limit.period_type.to_s, limit.amount, limit.id])
+                [limit.category&.id, limit.merchant, limit.period_type.to_s, limit.amount, limit.id])
 
     limit
   end
-
-  
 end

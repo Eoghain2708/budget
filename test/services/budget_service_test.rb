@@ -1,9 +1,9 @@
-require_relative "../test_helper"
+require_relative '../test_helper'
 
 class BudgetServiceTest < Minitest::Test
   def setup
-    @food = category(id: 1, title: "Food", colour: "red")
-    @work = category(id: 2, title: "Work", colour: "green")
+    @food = category(id: 1, title: 'Food', colour: 'red')
+    @work = category(id: 2, title: 'Work', colour: 'green')
 
     @categories_repo = FakeCategoryRepository.new(
       all: [@food, @work],
@@ -16,7 +16,7 @@ class BudgetServiceTest < Minitest::Test
       price: 12.5,
       date: Date.today,
       category: @food,
-      merchant: "Lidl",
+      merchant: 'Lidl',
       nature: :expense
     )
 
@@ -24,8 +24,8 @@ class BudgetServiceTest < Minitest::Test
       find: @transaction,
       between: [@transaction],
       by_date: [@transaction],
-      merchants: ["Lidl", "Tesco"],
-      recent_merchants: ["Lidl", "Tesco"]
+      merchants: %w[Lidl Tesco],
+      recent_merchants: %w[Lidl Tesco]
     )
 
     @service = BudgetService.new(@categories_repo, @transactions_repo)
@@ -37,22 +37,22 @@ class BudgetServiceTest < Minitest::Test
   end
 
   def test_create_category_saves_new_category
-    created = @service.create_category(title: "Bills", colour: "blue")
+    created = @service.create_category(title: 'Bills', colour: 'blue')
 
-    assert_equal "Bills", created.title
-    assert_equal "blue", created.colour
+    assert_equal 'Bills', created.title
+    assert_equal 'blue', created.colour
     assert_equal created, @categories_repo.saved
   end
 
   def test_edit_category_returns_nil_when_category_missing
-    assert_nil @service.edit_category(nil, new_title: "New")
+    assert_nil @service.edit_category(nil, new_title: 'New')
   end
 
   def test_edit_category_updates_and_saves
-    edited = @service.edit_category(@food, new_title: "Groceries", new_colour: "bright_green")
+    edited = @service.edit_category(@food, new_title: 'Groceries', new_colour: 'bright_green')
 
-    assert_equal "Groceries", edited.title
-    assert_equal "bright_green", edited.colour
+    assert_equal 'Groceries', edited.title
+    assert_equal 'bright_green', edited.colour
     assert_equal edited, @categories_repo.saved
   end
 
@@ -66,13 +66,13 @@ class BudgetServiceTest < Minitest::Test
   end
 
   def test_find_category_by_title_delegates_to_repository
-    assert_equal @work, @service.find_category_by_title("Work")
-    assert_equal "Work", @categories_repo.find_by_title_arg
+    assert_equal @work, @service.find_category_by_title('Work')
+    assert_equal 'Work', @categories_repo.find_by_title_arg
   end
 
   def test_search_by_title_delegates_to_repository
-    assert_equal @food, @service.search_by_title("Fo")
-    assert_equal "Fo", @categories_repo.search_by_title_arg
+    assert_equal @food, @service.search_by_title('Fo')
+    assert_equal 'Fo', @categories_repo.search_by_title_arg
   end
 
   def test_find_transaction_delegates_to_repository
@@ -84,7 +84,7 @@ class BudgetServiceTest < Minitest::Test
     assert_nil @service.add_transaction(
       price: 5.60,
       category: nil,
-      merchant: "Lidl",
+      merchant: 'Lidl',
       nature: :expense
     )
   end
@@ -93,13 +93,13 @@ class BudgetServiceTest < Minitest::Test
     result = @service.add_transaction(
       price: 5.60,
       category: @food,
-      merchant: "Lidl",
+      merchant: 'Lidl',
       nature: :expense
     )
 
     assert_equal 5.60, result.price
     assert_equal @food, result.category
-    assert_equal "Lidl", result.merchant
+    assert_equal 'Lidl', result.merchant
     assert_equal :expense, result.nature
     assert_equal result, @transactions_repo.saved
   end
@@ -113,14 +113,14 @@ class BudgetServiceTest < Minitest::Test
       new_price: 20.0,
       new_category: new_category,
       new_date: new_date,
-      new_merchant: "Tesco",
+      new_merchant: 'Tesco',
       new_nature: :income
     )
 
     assert_equal 20.0, edited.price
     assert_equal new_category, edited.category
     assert_equal new_date, edited.date
-    assert_equal "Tesco", edited.merchant
+    assert_equal 'Tesco', edited.merchant
     assert_equal :income, edited.nature
     assert_equal edited, @transactions_repo.saved
   end
@@ -139,11 +139,11 @@ class BudgetServiceTest < Minitest::Test
   end
 
   def test_merchants_delegates_to_repository
-    assert_equal ["Lidl", "Tesco"], @service.merchants
+    assert_equal %w[Lidl Tesco], @service.merchants
   end
 
   def test_recent_merchants_delegates_to_repository
-    assert_equal ["Lidl", "Tesco"], @service.recent_merchants(@food)
+    assert_equal %w[Lidl Tesco], @service.recent_merchants(@food)
     assert_equal @food, @transactions_repo.recent_merchants_arg
   end
 end

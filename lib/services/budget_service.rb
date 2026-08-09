@@ -1,11 +1,12 @@
-require "date"
+require 'date'
 
 class BudgetService
   # @param categories [CategoryRepository]
   # @param transactions [TransactionRepository]
   # @return [BudgetService]
   def initialize(categories, transactions)
-    raise ArgumentError, "Nil value is invalid" unless categories && transactions
+    raise ArgumentError, 'Nil value is invalid' unless categories && transactions
+
     @categories = categories
     @transactions = transactions
   end
@@ -26,7 +27,7 @@ class BudgetService
   # @param new_title [String] new title - default nil
   # @param new_colour [String] new colour - default nil
   # @return [Category]
-  def edit_category(category, new_title: nil, new_colour: nil) 
+  def edit_category(category, new_title: nil, new_colour: nil)
     return nil unless category
 
     category.title = new_title if new_title
@@ -56,7 +57,6 @@ class BudgetService
     @categories.search_by_title(category_title)
   end
 
-
   # @param id [Integer]
   # @return [Transaction]
   def find_transaction(id)
@@ -65,6 +65,7 @@ class BudgetService
 
   def add_transaction(price:, category:, merchant:, nature:)
     return nil unless category
+
     transaction = Transaction.new(
       price: price,
       category: category,
@@ -99,7 +100,6 @@ class BudgetService
     @transactions.delete(transaction_id)
   end
 
-
   # @param from [Date]
   # @param to [Date]
   def find_transactions_between(from: Date.today, to: from)
@@ -116,5 +116,4 @@ class BudgetService
   def recent_merchants(category)
     @transactions.get_recent_merchants(category)
   end
-
 end

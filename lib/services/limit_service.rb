@@ -1,8 +1,8 @@
 class LimitService
-  
   # @param limits [LimitRepository]
   def initialize(limits)
-    raise ArgumentError, "Limit Repository must be supplied" unless limits 
+    raise ArgumentError, 'Limit Repository must be supplied' unless limits
+
     @limits = limits
   end
 
@@ -28,10 +28,10 @@ class LimitService
   # @param new_amount [Float]
   # @param new_period_type [Symbol]
   # @return [Limit]
-  def edit_limit(limit, new_category, new_merchant, new_amount, new_period_type)
+  def edit_limit(limit, new_category: nil, new_merchant: nil, new_amount: nil, new_period_type: nil)
     limit.category = new_category if new_category
     limit.new_merchant = new_merchant if new_merchant
-    limit.new_amount = new_amount = new_amount
+    limit.new_amount = new_amount
     limit.new_period_type = new_period_type if new_period_type
 
     @limits.save(limit)
@@ -49,7 +49,8 @@ class LimitService
 
   # @param period_type [Symbol]
   def find_by_period_type(period_type)
-    raise ArgumentError, "Period type must be supplied" unless period_type
+    raise ArgumentError, 'Period type must be supplied' unless period_type
+
     @limits.find_by_period_type(period_type)
   end
 

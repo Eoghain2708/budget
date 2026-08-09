@@ -1,4 +1,4 @@
-require_relative "../test_helper"
+require_relative '../test_helper'
 
 class DateHelperTest < Minitest::Test
   def test_make_monday_from_monday
@@ -23,7 +23,7 @@ class DateHelperTest < Minitest::Test
 
   def test_parse_arg
     assert_equal Date.new(2026, 7, 22),
-                 DateHelper.parse_arg("2026-07-22")
+                 DateHelper.parse_arg('2026-07-22')
   end
 end
 
