@@ -1,17 +1,21 @@
 class Limit
   attr_accessor :id, :category, :merchant, :amount, :period_type
-  ALLOWED_PERIOD_TYPES = [:daily, :weekly, :monthly, :yearly]
+
+  ALLOWED_PERIOD_TYPES = %i[daily weekly monthly yearly]
   # @param id [Integer]
   # @param category [Category]
   # @param merchant [String]
   # @param amount [Float]
   # @param period_type [Symbol]
   def initialize(id: nil, category: nil, merchant: nil, amount: nil, period_type: nil)
-    raise ArgumentError, "Limit amount must be specified" unless amount
-    raise ArgumentError, "Period (e.g week, month) must be specified" unless period_type
-    raise ArgumentError, "Invalid period type: must be in #{ALLOWED_PERIOD_TYPES.to_s}" unless ALLOWED_PERIOD_TYPES.include?(period_type)
-    raise ArgumentError, "Either category or merchant must be specified" unless category || merchant
-    raise ArgumentError, "Limit cannot apply to both a merchant and a category" if category && merchant
+    raise ArgumentError, 'Limit amount must be specified' unless amount
+    raise ArgumentError, 'Period (e.g week, month) must be specified' unless period_type
+    unless ALLOWED_PERIOD_TYPES.include?(period_type)
+      raise ArgumentError,
+            "Invalid period type: must be in #{ALLOWED_PERIOD_TYPES}"
+    end
+    raise ArgumentError, 'Either category or merchant must be specified' unless category || merchant
+    raise ArgumentError, 'Limit cannot apply to both a merchant and a category' if category && merchant
 
     @id = id
     @category = category
@@ -46,14 +50,16 @@ class Limit
 
   def type
     return :category if category?
+
     :merchant
   end
 
   def get_period_string
-    return "week" if weekly?
-    return "day" if daily?
-    return "month" if monthly?
-    return "year" if yearly?
+    return 'week' if weekly?
+    return 'day' if daily?
+    return 'month' if monthly?
+
+    'year' if yearly?
   end
 
   def ==(other)

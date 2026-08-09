@@ -1,7 +1,6 @@
-require "sqlite3"
+require 'sqlite3'
 
 class Migrations
-
   # @param db [SQLite3::Database]
   def self.migrate(db)
     create_categories(db)
@@ -10,7 +9,7 @@ class Migrations
 
   def self.clear_transactions(db)
     db.execute(
-      <<~SQL,
+      <<~SQL
         DELETE FROM transactions
       SQL
     )
@@ -18,9 +17,9 @@ class Migrations
 
   def self.clear_categories(db)
     db.execute(
-    <<~SQL,
-      DELETE FROM transactions
-    SQL
+      <<~SQL
+        DELETE FROM transactions
+      SQL
     )
   end
 
@@ -29,12 +28,8 @@ class Migrations
     clear_categories(db)
   end
 
-  def self.run_migrations
-    
-  end
+  def self.run_migrations; end
 
-
-  private 
   # @param db [SQLite3::Database]
   def self.create_categories(db)
     db.execute <<~SQL

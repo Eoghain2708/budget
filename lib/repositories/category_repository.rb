@@ -2,7 +2,8 @@ class CategoryRepository
   # @param db [SQLite3::Database] - dependency injection for SQLite database
   def initialize(db)
     # @!attribute [SQLite3::Database]
-    raise ArgumentError, "db must exist" unless db
+    raise ArgumentError, 'db must exist' unless db
+
     @db = db
   end
 
@@ -21,63 +22,55 @@ class CategoryRepository
     return nil unless row
 
     Category.new(
-      id: row["id"],
-      title: row["title"],
-      colour: row["colour"]
+      id: row['id'],
+      title: row['title'],
+      colour: row['colour']
     )
   end
-
-
 
   # @param title [String]
   # @return [Category?]
   def find_by_title(title)
     build_category(@db.get_first_row(
-      <<~SQL,
-        SELECT *
-        FROM categories
-        WHERE lower(title) = ?
-      SQL
-      [title.downcase]
-    ))
+                     <<~SQL,
+                       SELECT *
+                       FROM categories
+                       WHERE lower(title) = ?
+                     SQL
+                     [title.downcase]
+                   ))
   end
 
   # @param title [String]
   # @return [Category]
   def search_by_title(title)
     build_category(@db.get_first_row(
-      <<~SQL,
-        SELECT *
-        FROM categories
-        WHERE title LIKE ?
-      SQL
-      ["%#{title}%"]
-    ))
+                     <<~SQL,
+                       SELECT *
+                       FROM categories
+                       WHERE title LIKE ?
+                     SQL
+                     ["%#{title}%"]
+                   ))
   end
 
-  
-
-  # @param category [Category] 
+  # @param category [Category]
   # @return [Category]
   def save(category)
     if category.id.nil?
       create(category)
-    else 
+    else
       update(category)
     end
   end
 
-
-
   # Returns all Categories from the database
   # @return [Array<Category>]
   def all
-    @db.execute("SELECT * FROM categories").map do |row|
+    @db.execute('SELECT * FROM categories').map do |row|
       build_category(row)
     end
   end
-
-
 
   # Deletes a Category record by id, returns true if successful
   # @param id [Integer]
@@ -92,22 +85,22 @@ class CategoryRepository
     )
 
     return false if @db.changes == 0
-    return true
+
+    true
   end
 
   private
-  # @param [Hash] row 
+
+  # @param [Hash] row
   # @param example: {id => Integer, title => String, colour => String}
   # @return [Category]
   def build_category(row)
     Category.new(
-      id: row["id"],
-      title: row["title"],
-      colour: row["colour"]
+      id: row['id'],
+      title: row['title'],
+      colour: row['colour']
     )
   end
-
-
 
   # @param category [Category]
   # @return [Category]
@@ -120,11 +113,11 @@ class CategoryRepository
       SQL
       [category.title, category.colour, category.id]
     )
-    
+
     category
   end
 
-   # @param category [Category]
+  # @param category [Category]
   # @return [Category]
   def create(category)
     @db.execute(
@@ -137,5 +130,4 @@ class CategoryRepository
     category.id = @db.last_insert_row_id
     category
   end
-
 end

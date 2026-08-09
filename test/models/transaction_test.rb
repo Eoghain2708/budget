@@ -1,11 +1,11 @@
-require_relative "../test_helper"
+require_relative '../test_helper'
 
 class TransactionTest < Minitest::Test
   def setup
     @category = Category.new(
       id: 1,
-      title: "Food",
-      colour: "red"
+      title: 'Food',
+      colour: 'red'
     )
   end
 
@@ -15,7 +15,7 @@ class TransactionTest < Minitest::Test
       price: 25.50,
       date: Date.today,
       category: @category,
-      merchant: "Lidl",
+      merchant: 'Lidl',
       nature: :expense
     )
 
@@ -23,7 +23,7 @@ class TransactionTest < Minitest::Test
     assert_equal 25.50, transaction.price
     assert_equal Date.today, transaction.date
     assert_equal @category, transaction.category
-    assert_equal "Lidl", transaction.merchant
+    assert_equal 'Lidl', transaction.merchant
     assert_equal :expense, transaction.nature
   end
 
@@ -34,7 +34,7 @@ class TransactionTest < Minitest::Test
     )
 
     assert_equal Date.today, transaction.date
-    assert_equal "unspecified", transaction.merchant
+    assert_equal 'unspecified', transaction.merchant
     assert_equal :expense, transaction.nature
   end
 
@@ -107,7 +107,7 @@ class TransactionTest < Minitest::Test
       id: 1,
       price: 100,
       category: @category,
-      merchant: "Tesco"
+      merchant: 'Tesco'
     )
 
     assert_equal first, second
