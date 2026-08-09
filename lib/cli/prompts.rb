@@ -112,12 +112,12 @@ module Prompts
     # @param limits [Array<Limit>]
     # @return [Limit]
     def get_limit(limits)
-      @prompt.select('Select a limit to delete', limits)
+      @prompt.select('Select a limit', limits)
     end
 
     # @param limit [Limit] - needed to check if limit is merchant or category
     def get_changes(limit)
-      choices = ['period-type, amount']
+      choices = ['period-type', 'amount']
       choices << if limit.merchant?
                    'merchant'
                  else

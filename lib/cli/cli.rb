@@ -43,6 +43,8 @@ class CLI
         Commands::Limits::ViewLimits.new(@bs, @rs, @ls).run(**options)
       when 'delete', 'del'
         Commands::Limits::DeleteLimit.new(@ls).run
+      when 'edit', 'e'
+        Commands::Limits::EditLimit.new(@bs, @rs, @ls).run
       end
 
     # adding transactions
