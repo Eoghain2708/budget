@@ -30,9 +30,9 @@ class LimitService
   # @return [Limit]
   def edit_limit(limit, new_category: nil, new_merchant: nil, new_amount: nil, new_period_type: nil)
     limit.category = new_category if new_category
-    limit.new_merchant = new_merchant if new_merchant
-    limit.new_amount = new_amount
-    limit.new_period_type = new_period_type if new_period_type
+    limit.merchant = new_merchant if new_merchant
+    limit.amount = new_amount if new_amount
+    limit.period_type = new_period_type if new_period_type
 
     @limits.save(limit)
   end

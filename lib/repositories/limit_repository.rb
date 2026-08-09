@@ -29,7 +29,7 @@ class LimitRepository
   # @return [Boolean]
   def delete(id)
     @db.execute(<<~SQL,
-      DELETE * FROM limits
+      DELETE FROM limits
       WHERE id = ?
     SQL
                 [id])
@@ -204,9 +204,12 @@ class LimitRepository
   # @return [Limit]
   def update(limit)
     @db.execute(<<~SQL,
-      INSERT INTO limits (category_id, merchant, period_type, amount)
-      VALUES (?, ?, ?, ?)
-      WHERE id = ?
+      UPDATE limits
+      SET category_id = ?, 
+      merchant = ?,
+      period_type = ?,
+      amount = ?
+      WHERE id = (?)
     SQL
                 [limit.category&.id, limit.merchant, limit.period_type.to_s, limit.amount, limit.id])
 

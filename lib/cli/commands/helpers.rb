@@ -9,11 +9,13 @@ module Commands
     # @param transaction_prompts [Prompts::TransactionPrompts]
     # @param category_prompts [Prompts::CategoryPrompts]
     # @param rs [ReportService]
-    def initialize(bs: nil, transaction_prompts: nil, category_prompts: nil, rs: nil, ls: nil)
+    def initialize(bs: nil, transaction_prompts: nil, category_prompts: nil, limit_prompts: nil, rs: nil, ls: nil)
       @bs = bs
       @rs = rs
+      @ls = ls
       @transaction_prompts = transaction_prompts
       @category_prompts = category_prompts
+      @limit_prompts = limit_prompts
     end
 
     # @param attribute [String]
@@ -127,10 +129,24 @@ module Commands
     def choose_limit
       limits = @ls.all_limits
       puts PASTEL.bright_red 'No limits found.' if limits.empty?
-      choices = limits.map do |limit|
-        area = limit.category || limit.merchant
+      choices = limits&.map do |limit|
+        area = limit.category&.title || limit.merchant
+
+        area_width = 20
+        period_width = 8
+        amount_width = 10
+
+        area_display =
+          if limit.category
+            PASTEL.public_send(limit.category.colour).decorate(area)
+          else
+            PASTEL.dim.decorate(area)
+          end
+
         {
-          name: "#{PASTEL.bold(area)} | #{limit.period_type.upcase} | #{limit.amount}",
+          name: "#{area_display.ljust(area_width)} | " \
+                "#{limit.period_type.to_s.upcase.ljust(period_width)} | " \
+                "#{limit.amount.to_s.rjust(amount_width)}",
           value: limit
         }
       end

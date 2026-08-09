@@ -49,7 +49,7 @@ module Commands
           @ls = ls
           @transactions = Prompts::TransactionPrompts.new(PROMPT, PASTEL)
           @limits = Prompts::LimitPrompts.new(PROMPT, PASTEL)
-          @helper = Commands::Helpers.new(bs: bs, transaction_prompts: @transactions, rs: @rs)
+          @helper = Commands::Helpers.new(bs: bs, transaction_prompts: @transactions, rs: @rs, ls: @ls, limit_prompts: @limits)
         end
 
         def run(merchant: nil, category: nil, amount: nil, period_type: nil)
@@ -82,14 +82,14 @@ module Commands
           @ls = ls
           @limit_prompts = Prompts::LimitPrompts.new(PROMPT, PASTEL)
           @general_prompts = Prompts::General.new(PROMPT)
-          @helper = Commands::Helpers.new(ls: @ls)
+          @helper = Commands::Helpers.new(ls: @ls, limit_prompts: @limit_prompts)
         end
 
         def run
           limit = @helper.choose_limit
 
           if @general_prompts.confirmed
-            @ls.delete_limit(limit.id)
+            @ls.delete_limit(limit)
             puts PASTEL.bold("Limit for #{limit.category ? limit.category : limit.merchant} deleted successfully!")
             return
           end
@@ -106,24 +106,26 @@ module Commands
           @bs = bs
           @rs = rs
           @ls = ls
-          @helper = Commands::Helpers.new(bs: bs, rs: rs, ls: ls)
           @limit_prompts = Prompts::LimitPrompts.new(PROMPT, PASTEL)
+          @transaction_prompts = Prompts::TransactionPrompts.new(PROMPT, PASTEL)
+          @helper = Commands::Helpers.new(bs: bs, rs: rs, ls: ls, limit_prompts: @limit_prompts, transaction_prompts: @transaction_prompts)
         end
 
         def run
           limit = @helper.choose_limit
-          changes = @limit_prompts.get_changes
+          changes = @limit_prompts.get_changes(limit)
 
           new_category = @helper.get_category if changes.include? "category"
           new_merchant = @helper.choose_merchant if changes.include? "merchant"
           new_period_type = @limit_prompts.get_period_type if changes.include? "period-type"
+          new_amount = @limit_prompts.get_amount if changes.include? "amount"
 
           # print out changes
           puts PASTEL.bold.bright_yellow @helper.previous_and_new(limit.category.title, new_category.title, "Category") if new_category
           puts PASTEL.bold.cyan @helper.previous_and_new(limit.merchant, new_merchant, "Merchant") if new_merchant
           puts PASTEL.bold @helper.previous_and_new(limit.period_type, new_period_type, "Period") if new_period_type
-
-          @ls.edit_limit(limit, new_category:, new_merchant:, new_period_type:)
+          puts PASTEL.bold @helper.previous_and_new(limit.amount, new_amount, "Amount") if new_amount
+          @ls.edit_limit(limit, new_category:, new_merchant:, new_period_type:, new_amount:)
           puts PASTEL.bold.bright_green "Edited successfully!"
         end
       end
