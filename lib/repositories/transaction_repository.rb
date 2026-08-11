@@ -169,7 +169,7 @@ class TransactionRepository
   # @param merchant [String]
   # @param nature [String]
   # @return [Array<Transaction>]
-  def filter_and_find(from: nil, to: nil, category: nil, merchant: nil, nature: nil)
+  def find_by_attrs(from: nil, to: nil, category: nil, merchant: nil, nature: nil)
     sql = 'SELECT * FROM transactions'
     conditions = []
     params = []
