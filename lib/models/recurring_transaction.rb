@@ -66,6 +66,13 @@ class RecurringTransaction
   def hash
     id.hash
   end
+  
+  def get_period_string
+    return 'week' if weekly?
+    return 'day' if daily?
+    return 'month' if monthly?
+    return 'year' if yearly?
+  end
 
   private
   

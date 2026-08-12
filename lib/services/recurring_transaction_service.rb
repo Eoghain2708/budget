@@ -1,4 +1,5 @@
 require_relative "../../lib/models/recurring_transaction"
+require "date"
 
 class RecurringTransactionService
 
@@ -67,9 +68,23 @@ class RecurringTransactionService
     @recurrings.find_by_attrs(category:, merchant:, price:, init_date:, nature:, period_type:)
   end
 
+
   # @return [Array<RecurringTransaction>]
   def all
     @recurrings.all
+  end
+
+  # @param recurring [Array<RecurringTransaction>]
+  def process_due(recurring)
+    recurring.each do |rec|
+      while rec.next_due < Date.today
+        @c_repo.add_transaction(build_transaction_from_recurring(rec))
+        puts "Transaction created successfully."
+        puts "Amount: #{rec.price} #{rec.nature} for #{rec.merchant} in #{rec.category.title}"
+        rec.update_next_due
+      end
+      @recurrings.save(rec)
+    end
   end
 
 end

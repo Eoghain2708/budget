@@ -94,7 +94,40 @@ module Commands
     end
 
     class ViewRecurring
-      
+      # @param rts [RecurringTransactionService]
+      def initialize(rts)
+        @rts = rts
+      end
+
+      def run(options)
+        recurring = @rts.find_by_attrs(**options)
+        recurring.each { |r| format_recurring(r) }
+      end
+    end
+
+    class SyncRecurring
+      # @param rts [RecurringTransactionService]
+      def initialize(rts)
+        @rts = rts
+        @recurring_prompts = Prompts::RecurringTransactionPrompts.new(PROMPT, PASTEL)
+      end
+
+      def run
+        recurring = @rts.find_by_attrs(unprocessed: true)
+        if recurring.size == 0
+          puts "You have no missed recurring transactions!"
+          return
+        end
+        puts "You have #{recurring.size} recurring transactions to sync!"
+        choices = recurring.map do |rec|
+          {
+            name: "#{rec.init_date.to_s.ljust(10)} | #{rec.category.title.ljust(20)} | #{rec.merchant.ljust(20)} | #{rec.amount.to_s.rjust(7)} | (#{rec.nature})",
+            value: rec
+          }
+        end
+        res = recurring - choices
+        @rts.process_due(res)
+      end
     end
 
     # @param rts [RecurringTransactionRepository]
@@ -108,6 +141,15 @@ module Commands
       end
 
       return recurring_prompts.get_recurring_choice(choices)
+    end
+
+    # @param recurring [RecurringTransaction]
+    def format_recurring(recurring)
+      puts "Category: #{PASTEL.public_send(recurring.category.colour, recurring.category.title)}"
+      puts "Merchant: #{recurring.merchant}"
+      puts "Amount: #{recurring.amount} per #{recurring.get_period_string}"
+      puts "Nature: #{recurring.nature}"
+      puts "Next payment: #{recurring.next_due}"
     end
   end
 end

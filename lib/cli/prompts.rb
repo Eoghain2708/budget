@@ -155,5 +155,10 @@ module Prompts
       choices = ['Category', 'Merchant', 'Initial date', 'Amount', 'Period', 'Nature']
       @prompt.multi_select("Select the attributes you'd like to change", choices, cycle: true)
     end
+
+    # @param recurring [Array<RecurringTransaction>]
+    def get_ignored(recurring)
+      @prompt.multi_select("Select any that you would like to ignore.", recurring, cycle: true)
+    end
   end
 end

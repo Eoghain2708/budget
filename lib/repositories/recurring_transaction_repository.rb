@@ -1,4 +1,5 @@
 require_relative "../../lib/models/recurring_transaction"
+require "date"
 
 class RecurringTransactionService
   # @param db [SQLite3::Database]
@@ -54,7 +55,8 @@ class RecurringTransactionService
   # @param price [Float] - includes anything below and up to
   # @param init_date [Date]
   # @param next_due [Date]
-  def find_by_attrs(category: nil, merchant: nil, period_type: nil, price: nil, init_date: nil, next_due: nil)
+  # @param unprocessed [Boolean]
+  def find_by_attrs(category: nil, merchant: nil, period_type: nil, price: nil, init_date: nil, next_due: nil, unprocessed: nil)
     sql = <<~SQL
       SELECT * FROM 
     SQL
@@ -89,6 +91,16 @@ class RecurringTransactionService
     if next_due
       conditions << "next_due = ?"
       params << next_due.iso8601
+    end
+
+    if unprocessed == true
+      conditions << "next_due <= ?"
+      params << Date.today.iso8601
+    end
+
+    if unprocessed == false
+      conditions << "next_due > ?"
+      params << Date.today.iso8601
     end
 
     sql << ' WHERE ' << conditions.join(' AND ') unless conditions.empty?
