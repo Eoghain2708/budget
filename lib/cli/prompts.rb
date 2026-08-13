@@ -142,8 +142,9 @@ module Prompts
       @prompt.select('What is period for this limit?', %w[daily weekly monthly yearly]).to_sym
     end
 
+    # @return [Float]
     def get_price(period)
-      @prompt.ask("Enter the amount per #{period}.")
+      @prompt.ask("Enter the #{period} amount").to_f
     end
 
     def get_recurring_choice(choices)

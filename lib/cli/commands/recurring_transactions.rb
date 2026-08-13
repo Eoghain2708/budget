@@ -29,10 +29,11 @@ module Commands
         init_date = DateHelper.parse_arg(init_date)
 
         period_type = period_type&.to_s || @recurring_prompts.get_period_type
-        price ||= @recurring.get_price(period_type)
+        price ||= @recurring_prompts.get_price(period_type); price = price.to_f
+
         nature = nature&.to_sym || @transaction_prompts.get_nature
 
-        @rts.create_recurring(category:, merchant:, price:, init_date:, nature:, period_type:)
+        @rts.create_recurring(category: category, merchant: merchant, price: price, init_date: init_date, nature: nature, period_type: period_type)
         PROMPT.ok("Created recurring transaction successfully! Category: #{category.title} | Merchant: #{merchant} | #{nature.to_s.capitalize}: #{price} | Period: #{period_type}")
       end
     end
@@ -76,13 +77,14 @@ module Commands
       def initialize(rts)
         @rts = rts
         @recurring_prompts = Prompts::RecurringTransactionPrompts.new(PROMPT, PASTEL)
-        @general = Prompts::General.new(PROMPT, PASTEL)
+        @general = Prompts::General.new(PROMPT)
       end
 
       def run
         choice = RecurringTransactions.choose_recurring(@rts, @recurring_prompts)
+        return unless choice
         if @general.confirmed
-          @rts.delete_recurring(choice.id)
+          @rts.delete_recurring(choice)
           PROMPT.ok("Deleted successfully!")
           return 
         else 
@@ -99,9 +101,9 @@ module Commands
         @rts = rts
       end
 
-      def run(options)
+      def run(options: nil)
         recurring = @rts.find_by_attrs(**options)
-        recurring.each { |r| format_recurring(r) }
+        recurring.each { |r| RecurringTransactions.format_recurring(r) }
       end
     end
 
@@ -121,7 +123,7 @@ module Commands
         puts "You have #{recurring.size} recurring transactions to sync!"
         choices = recurring.map do |rec|
           {
-            name: "#{rec.init_date.to_s.ljust(10)} | #{rec.category.title.ljust(20)} | #{rec.merchant.ljust(20)} | #{rec.amount.to_s.rjust(7)} | (#{rec.nature})",
+            name: "#{rec.init_date.to_s.ljust(10)} | #{rec.merchant.ljust(20)} | Amount due: #{rec.amount}, from: #{rec.next_due}",
             value: rec
           }
         end
@@ -133,21 +135,28 @@ module Commands
     # @param rts [RecurringTransactionRepository]
     # @param recurring_prompts [Prompts::RecurringTransactionPrompts]
     def self.choose_recurring(rts, recurring_prompts)
-      choices = @rts.all.map do |rec|
+      choices = rts.all&.map do |rec|
         {
-          name: PASTEL.bold("#{PASTEL.public_send(rec.category.colour, rec.category.title)} | #{rec.merchant} | #{rec.nature} | #{rec.price} | #{rec.period_type}"),
+          name: PASTEL.bold("#{PASTEL.public_send(rec.category&.colour, rec.category.title)} | #{rec.merchant} | #{rec.nature} | #{rec.price} | #{rec.period_type}"),
           value: rec
         }
+      end
+
+      if choices.empty?
+        return nil
       end
 
       return recurring_prompts.get_recurring_choice(choices)
     end
 
     # @param recurring [RecurringTransaction]
-    def format_recurring(recurring)
-      puts "Category: #{PASTEL.public_send(recurring.category.colour, recurring.category.title)}"
+    def self.format_recurring(recurring)
+      puts recurring.class
+      puts recurring.category.class
+      puts "ID: #{recurring.id}"
+      puts "Category: #{recurring.category.title}"
       puts "Merchant: #{recurring.merchant}"
-      puts "Amount: #{recurring.amount} per #{recurring.get_period_string}"
+      puts "Amount: #{recurring.price} per #{recurring.get_period_string}"
       puts "Nature: #{recurring.nature}"
       puts "Next payment: #{recurring.next_due}"
     end

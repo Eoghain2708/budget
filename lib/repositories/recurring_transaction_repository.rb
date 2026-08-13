@@ -1,7 +1,7 @@
 require_relative "../../lib/models/recurring_transaction"
 require "date"
 
-class RecurringTransactionService
+class RecurringTransactionRepository
   # @param db [SQLite3::Database]
   # @param t_repo [TransactionRepository]
   # @param c_repo [CategoryRepository]
@@ -56,10 +56,8 @@ class RecurringTransactionService
   # @param init_date [Date]
   # @param next_due [Date]
   # @param unprocessed [Boolean]
-  def find_by_attrs(category: nil, merchant: nil, period_type: nil, price: nil, init_date: nil, next_due: nil, unprocessed: nil)
-    sql = <<~SQL
-      SELECT * FROM 
-    SQL
+  def find_by_attrs(category: nil, merchant: nil, period_type: nil, price: nil, init_date: nil, next_due: nil, unprocessed: nil, nature: nil, id: nil)
+    sql = "SELECT * FROM recurring_transactions"
     conditions = []
     params = []
 
@@ -103,10 +101,19 @@ class RecurringTransactionService
       params << Date.today.iso8601
     end
 
-    sql << ' WHERE ' << conditions.join(' AND ') unless conditions.empty?
+    if nature
+      conditions << "nature = ?"
+      params << nature.to_s.downcase
+    end
 
+    if id
+      conditions << "id = ?"
+      params << id
+    end
+
+    sql << ' WHERE ' << conditions.join(' AND ') unless conditions.empty?
     rows = @db.execute(sql, params)
-    rows.map { |r| build_limit(r) }
+    rows.map { |r| build_recurring_transaction(r) }
   end
 
 
@@ -128,6 +135,7 @@ class RecurringTransactionService
   private
   def build_recurring_transaction(row)
     category = @c_repo.find(row["category_id"])
+
     RecurringTransaction.new(
       id: row["id"],
       category: category,
@@ -149,7 +157,7 @@ class RecurringTransactionService
       SQL
       [
       recurring.category.id, recurring.merchant, recurring.init_date.iso8601, 
-      recurring.nature, recurring.next_due.iso8601, recurring.period_type.to_s
+      recurring.nature.to_s, recurring.next_due.iso8601, recurring.period_type.to_s
       ]
     )
     recurring.id = @db.last_insert_row_id
@@ -166,7 +174,7 @@ class RecurringTransactionService
         WHERE id = ?
       SQL
       [recurring.category.id, recurring.merchant, recurring.init_date.iso8601, 
-      recurring.nature, recurring.next_due.iso8601, recurring.period_type.to_s]
+      recurring.nature.to_s, recurring.next_due.iso8601, recurring.period_type.to_s]
     )
 
     recurring

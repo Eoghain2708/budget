@@ -21,12 +21,12 @@ class RecurringTransactionService
   # @return [RecurringTransaction]
   def create_recurring(category:, merchant:, price:, init_date:, nature:, period_type:)
     recurring = RecurringTransaction.new(
-      category:,
-      merchant:,
-      price:,
-      init_date:,
-      nature:,
-      period_type:
+      category: category,
+      merchant: merchant,
+      price: price,
+      init_date: init_date,
+      nature: nature,
+      period_type: period_type
     )
 
     @recurrings.save(recurring)
@@ -64,8 +64,8 @@ class RecurringTransactionService
   # @param nature [Symbol]
   # @param period_type [Symbol]
   # @return [Array<RecurringTransaction>]
-  def find_by_attrs(category:, merchant:, price:, init_date:, nature:, period_type:)
-    @recurrings.find_by_attrs(category:, merchant:, price:, init_date:, nature:, period_type:)
+  def find_by_attrs(category: nil, merchant: nil, price: nil, init_date: nil, nature: nil, period_type: nil, id: nil)
+    @recurrings.find_by_attrs(category:, merchant:, price:, init_date:, nature:, period_type:, id:)
   end
 
 

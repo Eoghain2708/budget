@@ -10,7 +10,7 @@ class RecurringTransaction
   # @param price [Float]
   # @param nature [Symbol]
   def initialize(id: nil, category: nil, merchant: nil, init_date: nil, period_type: nil, price: nil, nature: nil)
-    raise ArgumentError, "Price needs to be specified" unless price&.positive?
+    raise ArgumentError, "Price needs to be specified" unless price && price >= 0
     raise ArgumentError, "Merchant and category needs to be specified" unless merchant && category
     raise ArgumentError, "Date of first payment needs to be specified" unless init_date
     raise ArgumentError, "Valid period type needs to be specified" unless period_type && ALLOWED_PERIOD_TYPES.include?(period_type)

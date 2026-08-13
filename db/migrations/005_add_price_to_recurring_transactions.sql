@@ -1,0 +1,2 @@
+ALTER TABLE recurring_transactions
+ADD COLUMN price DECIMAL NOT NULL DEFAULT 0;
