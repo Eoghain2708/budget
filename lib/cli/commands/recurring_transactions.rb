@@ -1,4 +1,5 @@
 require_relative 'commands'
+require "irb"
 
 module Commands
   module RecurringTransactions
@@ -26,13 +27,12 @@ module Commands
         merchant ||= @helper.choose_merchant
 
         init_date ||= @recurring_prompts.get_init_date
-        init_date = DateHelper.parse_arg(init_date)
+        init_date = PeriodDefiner.define_day(init_date)
 
         period_type = period_type&.to_s || @recurring_prompts.get_period_type
         price ||= @recurring_prompts.get_price(period_type); price = price.to_f
 
         nature = nature&.to_sym || @transaction_prompts.get_nature
-
         @rts.create_recurring(category: category, merchant: merchant, price: price, init_date: init_date, nature: nature, period_type: period_type)
         PROMPT.ok("Created recurring transaction successfully! Category: #{category.title} | Merchant: #{merchant} | #{nature.to_s.capitalize}: #{price} | Period: #{period_type}")
       end
@@ -57,10 +57,11 @@ module Commands
         changes = @recurring_prompts.get_changes(choice)
         category = @helper.get_category if changes.include? "Category"
         merchant = @helper.choose_merchant if changes.include? "Merchant"
-        init_date = @recurring_prompts.get_init_date if changes.include? "Initial date"
+        init_date = PeriodDefiner.define_day(@recurring_prompts.get_init_date) if changes.include? "Initial date"
         nature = @transaction_prompts.get_nature if changes.include? "Nature"
-        price = @recurring_prompts.get_price if changes.include? "Amount"
         period_type = @recurring_prompts.get_period_type if changes.include? "Period"
+        price = @recurring_prompts.get_price(period_type) if changes.include? "Amount"
+        
         puts PASTEL.bold @helper.previous_and_new(choice.category.title, category.title) if category
         puts PASTEL.bold @helper.previous_and_new(choice.merchant, merchant) if merchant
         puts PASTEL.bold @helper.previous_and_new(choice.init_date, init_date) if init_date
@@ -123,11 +124,13 @@ module Commands
         puts "You have #{recurring.size} recurring transactions to sync!"
         choices = recurring.map do |rec|
           {
-            name: "#{rec.init_date.to_s.ljust(10)} | #{rec.merchant.ljust(20)} | Amount due: #{rec.amount}, from: #{rec.next_due}",
+            name: "#{rec.init_date.to_s.ljust(10)} | #{rec.merchant.ljust(20)} | Amount due: #{rec.price}, from: #{rec.next_due}",
             value: rec
           }
         end
-        res = recurring - choices
+        ignored = RecurringTransactions.choose_recurring_to_ignore(choices)
+        res = recurring - ignored
+        pp res
         @rts.process_due(res)
       end
     end
@@ -147,6 +150,10 @@ module Commands
       end
 
       return recurring_prompts.get_recurring_choice(choices)
+    end
+
+    def self.choose_recurring_to_ignore(choices)
+      PROMPT.multi_select("Choose transactions to ignore:", choices)
     end
 
     # @param recurring [RecurringTransaction]

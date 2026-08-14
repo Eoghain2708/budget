@@ -64,8 +64,8 @@ class RecurringTransactionService
   # @param nature [Symbol]
   # @param period_type [Symbol]
   # @return [Array<RecurringTransaction>]
-  def find_by_attrs(category: nil, merchant: nil, price: nil, init_date: nil, nature: nil, period_type: nil, id: nil)
-    @recurrings.find_by_attrs(category:, merchant:, price:, init_date:, nature:, period_type:, id:)
+  def find_by_attrs(category: nil, merchant: nil, price: nil, init_date: nil, nature: nil, period_type: nil, id: nil, unprocessed: nil)
+    @recurrings.find_by_attrs(category:, merchant:, price:, init_date:, nature:, period_type:, id:, unprocessed:)
   end
 
 
@@ -77,8 +77,8 @@ class RecurringTransactionService
   # @param recurring [Array<RecurringTransaction>]
   def process_due(recurring)
     recurring.each do |rec|
-      while rec.next_due < Date.today
-        @c_repo.add_transaction(build_transaction_from_recurring(rec))
+      while rec.next_due <= Date.today
+        @transactions.save(@recurrings.build_transaction_from_recurring(rec))
         puts "Transaction created successfully."
         puts "Amount: #{rec.price} #{rec.nature} for #{rec.merchant} in #{rec.category.title}"
         rec.update_next_due

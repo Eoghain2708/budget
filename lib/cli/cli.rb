@@ -42,6 +42,8 @@ class CLI
         Commands::RecurringTransactions::DeleteRecurring.new(@rts).run
       when "edit"
         Commands::RecurringTransactions::EditRecurring.new(@bs, @rs, @rts).run
+      when "sync"
+        Commands::RecurringTransactions::SyncRecurring.new(@rts).run
       end
 
     when 'limit', 'l'

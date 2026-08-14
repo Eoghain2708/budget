@@ -128,7 +128,8 @@ class RecurringTransactionRepository
         category: recurring.category,
         merchant: recurring.merchant,
         date: recurring.next_due,
-        nature: recurring.nature
+        nature: recurring.nature,
+        price: recurring.price
     )
   end
 
@@ -152,12 +153,12 @@ class RecurringTransactionRepository
   def create(recurring)
     @db.execute(
       <<~SQL,
-        INSERT INTO recurring_transactions (category_id, merchant, init_date, nature, next_due, period_type)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO recurring_transactions (category_id, merchant, init_date, nature, next_due, period_type, price)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
       SQL
       [
       recurring.category.id, recurring.merchant, recurring.init_date.iso8601, 
-      recurring.nature.to_s, recurring.next_due.iso8601, recurring.period_type.to_s
+      recurring.nature.to_s, recurring.next_due.iso8601, recurring.period_type.to_s, recurring.price
       ]
     )
     recurring.id = @db.last_insert_row_id
@@ -169,12 +170,12 @@ class RecurringTransactionRepository
   def update(recurring)
     @db.execute(
       <<~SQL,
-        UPDATE transactions
-        SET category_id = ?, merchant = ?, init_date = ?, nature = ?, next_due = ?, period_type = ?
+        UPDATE recurring_transactions
+        SET category_id = ?, merchant = ?, init_date = ?, nature = ?, next_due = ?, period_type = ?, price = ?
         WHERE id = ?
       SQL
       [recurring.category.id, recurring.merchant, recurring.init_date.iso8601, 
-      recurring.nature.to_s, recurring.next_due.iso8601, recurring.period_type.to_s]
+      recurring.nature.to_s, recurring.next_due.iso8601, recurring.period_type.to_s, recurring.price, recurring.id]
     )
 
     recurring
