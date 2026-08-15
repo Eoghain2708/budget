@@ -169,7 +169,7 @@ class TransactionRepository
   # @param merchant [String]
   # @param nature [String]
   # @return [Array<Transaction>]
-  def filter_and_find(from: nil, to: nil, category: nil, merchant: nil, nature: nil)
+  def find_by_attrs(from: nil, to: nil, category: nil, merchant: nil, nature: nil, id: nil)
     sql = 'SELECT * FROM transactions'
     conditions = []
     params = []
@@ -199,13 +199,19 @@ class TransactionRepository
       params << nature
     end
 
+    if id
+      conditions << "id = ?"
+      params << id
+    end
+
     sql << 'WHERE' << conditions.join(' AND ') unless conditions.empty?
 
     rows = @db.execute(sql, params)
 
-    rows.map do |row|
+    res = rows.map do |row|
       build_transaction(row)
     end
+    res
   end
 
   private

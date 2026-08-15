@@ -12,9 +12,11 @@ class CLI
     category_repo = CategoryRepository.new(@database)
     transaction_repo = TransactionRepository.new(@database, category_repo)
     limit_repo = LimitRepository.new(@database, category_repo)
+    recurring_transaction_repo = RecurringTransactionRepository.new(@database, transaction_repo, category_repo)
     @bs = BudgetService.new(category_repo, transaction_repo)
     @rs = ReportService.new(category_repo, transaction_repo)
     @ls = LimitService.new(limit_repo)
+    @rts = RecurringTransactionService.new(category_repo, transaction_repo, recurring_transaction_repo)
   end
 
   # @param argv [Array<String>]
@@ -26,6 +28,23 @@ class CLI
       return
     end
     case command.downcase.strip
+
+    when "recurring", "rec"
+      action = argv&.shift
+      errorise("You must include an action: set | see | edit | delete | sync") unless action
+      
+      case action.strip.downcase
+      when "set"
+        Commands::RecurringTransactions::AddRecurring.new(@bs, @rs, @rts).run
+      when "see"
+        Commands::RecurringTransactions::ViewRecurring.new(@rts).run
+      when "delete", "del"
+        Commands::RecurringTransactions::DeleteRecurring.new(@rts).run
+      when "edit"
+        Commands::RecurringTransactions::EditRecurring.new(@bs, @rs, @rts).run
+      when "sync"
+        Commands::RecurringTransactions::SyncRecurring.new(@rts).run
+      end
 
     when 'limit', 'l'
       action = argv&.shift

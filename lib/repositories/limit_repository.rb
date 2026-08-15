@@ -135,7 +135,7 @@ class LimitRepository
     limit.id.nil? ? create(limit) : update(limit)
   end
 
-  def find_by_attrs(category: nil, merchant: nil, period_type: nil)
+  def find_by_attrs(category: nil, merchant: nil, period_type: nil, id: nil)
     sql = <<~SQL
       SELECT * FROM limits
     SQL
@@ -157,10 +157,16 @@ class LimitRepository
       params << period_type.to_s
     end
 
+    if id
+      conditions << "where id = ?"
+      params << id
+    end
+
     sql << ' WHERE ' << conditions.join(' AND ') unless conditions.empty?
 
     rows = @db.execute(sql, params)
-    rows.map { |r| build_limit(r) }
+    res = rows.map { |r| build_limit(r) }
+    res
   end
 
   private

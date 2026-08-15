@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+Dir[File.join(__dir__, "../lib", "**", "*.rb")].each do |file|
+  require file
+end
+
+
+require "irb"
+
+IRB.start

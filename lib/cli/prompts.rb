@@ -9,7 +9,7 @@ module Prompts
     end
 
     def confirmed
-      @prompt.ask('Are you sure?')
+      @prompt.yes?('Are you sure?')
     end
   end
 
@@ -73,7 +73,7 @@ module Prompts
 
     # @return [String]
     def get_date
-      @prompt.ask('Enter the new date (YY-mm-DD, or use a shorthand date)')
+      @prompt.ask('Enter the date (YY-mm-DD, or use a shorthand date)')
     end
 
     # @param choices [Array<String>]
@@ -124,6 +124,42 @@ module Prompts
                    'category'
                  end
       @prompt.multi_select("Select the attributes you'd like to change:", choices, cycle: true)
+    end
+  end
+
+  class RecurringTransactionPrompts
+    def initialize(prompt, pastel)
+      @prompt = prompt
+      @pastel = pastel
+    end
+
+    def get_init_date
+      @prompt.ask("Enter the initial date (first payment) in format YY-mm-dd or using shorthand")
+    end
+
+    # @return [Symbol]
+    def get_period_type
+      @prompt.select('What is period for this limit?', %w[daily weekly monthly yearly]).to_sym
+    end
+
+    # @return [Float]
+    def get_price(period)
+      @prompt.ask("Enter the #{period} amount").to_f
+    end
+
+    def get_recurring_choice(choices)
+      @prompt.select("Choose a recurring transaction", choices)
+    end
+
+    # @param choice [RecurringTransaction]
+    def get_changes(choice)
+      choices = ['Category', 'Merchant', 'Initial date', 'Amount', 'Period', 'Nature']
+      @prompt.multi_select("Select the attributes you'd like to change", choices, cycle: true)
+    end
+
+    # @param recurring [Array<RecurringTransaction>]
+    def get_ignored(recurring)
+      @prompt.multi_select("Select any that you would like to ignore.", recurring, cycle: true)
     end
   end
 end

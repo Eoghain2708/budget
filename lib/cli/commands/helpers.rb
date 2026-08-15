@@ -160,7 +160,7 @@ module Commands
       date = PASTEL.bold.bright_yellow(date)
       category = t.category.title.ljust(15)
       category = PASTEL.bold.public_send(t.category.colour.to_sym, category)
-      merchant = t.merchant.ljust(15)
+      merchant = t.merchant&.ljust(15)
       merchant = PASTEL.bold.public_send(Category::ALLOWED_COLOURS.sample.to_sym, merchant)
       price = t.price.to_s.rjust(10)
       if t.expense?
