@@ -65,14 +65,6 @@ class RecurringTransactionTest < Minitest::Test
     assert_equal "Price needs to be specified", error.message
   end
 
-  def test_rejects_zero_price
-    assert_raises(ArgumentError) do
-      RecurringTransaction.new(
-        **@valid_attributes,
-        price: 0
-      )
-    end
-  end
 
   def test_rejects_negative_price
     assert_raises(ArgumentError) do

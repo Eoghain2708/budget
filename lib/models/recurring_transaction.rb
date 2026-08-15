@@ -9,7 +9,7 @@ class RecurringTransaction
   # @param period_type [Symbol]
   # @param price [Float]
   # @param nature [Symbol]
-  def initialize(id: nil, category: nil, merchant: nil, init_date: nil, period_type: nil, price: nil, nature: nil)
+  def initialize(id: nil, category: nil, merchant: nil, init_date: nil, period_type: nil, price: nil, nature: nil, next_due: nil)
     raise ArgumentError, "Price needs to be specified" unless price && price >= 0
     raise ArgumentError, "Merchant and category needs to be specified" unless merchant && category
     raise ArgumentError, "Date of first payment needs to be specified" unless init_date
@@ -21,7 +21,7 @@ class RecurringTransaction
     @init_date = init_date
     @period_type = period_type
     @price = price
-    @next_due = init_date
+    @next_due = next_due.nil? ? init_date : next_due
     @nature = nature
   end
 
@@ -42,7 +42,7 @@ class RecurringTransaction
   end
 
   def update_next_due
-    @next_due = calculate_next_due(@period_type, @next_due)
+    @next_due = calculate_next_due(period_type, next_due)
   end
 
   def expense?

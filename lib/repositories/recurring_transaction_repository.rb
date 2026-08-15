@@ -136,7 +136,7 @@ class RecurringTransactionRepository
   private
   def build_recurring_transaction(row)
     category = @c_repo.find(row["category_id"])
-
+    next_due = row["init_date"] == row["next_due"] ? nil : Date.parse(row["next_due"])
     RecurringTransaction.new(
       id: row["id"],
       category: category,
@@ -144,7 +144,8 @@ class RecurringTransactionRepository
       init_date: Date.parse(row["init_date"]),
       period_type: row["period_type"].to_sym,
       price: row["price"],
-      nature: row["nature"].to_sym
+      nature: row["nature"].to_sym,
+      next_due: next_due
     )
   end
 
@@ -168,6 +169,7 @@ class RecurringTransactionRepository
   # @param recurring [RecurringTransaction]
   # @return [RecurringTransaction]
   def update(recurring)
+    binding.irb
     @db.execute(
       <<~SQL,
         UPDATE recurring_transactions

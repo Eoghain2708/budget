@@ -1,5 +1,6 @@
 require_relative 'commands'
 require "irb"
+require "date"
 
 module Commands
   module RecurringTransactions
@@ -104,7 +105,11 @@ module Commands
 
       def run(options: nil)
         recurring = @rts.find_by_attrs(**options)
-        recurring.each { |r| RecurringTransactions.format_recurring(r) }
+        puts ""
+        recurring.each do |r|
+          RecurringTransactions.format_recurring(r)
+          puts "-" * 57
+        end
       end
     end
 
@@ -124,7 +129,7 @@ module Commands
         puts "You have #{recurring.size} recurring transactions to sync!"
         choices = recurring.map do |rec|
           {
-            name: "#{rec.init_date.to_s.ljust(10)} | #{rec.merchant.ljust(20)} | Amount due: #{rec.price}, from: #{rec.next_due}",
+            name: "#{rec.init_date.to_s.ljust(10)} | #{rec.merchant&.ljust(20)} | Amount due: #{rec.price}, on: #{rec.next_due}",
             value: rec
           }
         end
@@ -158,14 +163,24 @@ module Commands
 
     # @param recurring [RecurringTransaction]
     def self.format_recurring(recurring)
-      puts recurring.class
-      puts recurring.category.class
-      puts "ID: #{recurring.id}"
-      puts "Category: #{recurring.category.title}"
-      puts "Merchant: #{recurring.merchant}"
-      puts "Amount: #{recurring.price} per #{recurring.get_period_string}"
-      puts "Nature: #{recurring.nature}"
-      puts "Next payment: #{recurring.next_due}"
+      category = PASTEL.public_send(recurring.category.colour)
+      amount = case recurring.nature
+      when :expense then PASTEL.bold.bright_red(recurring.price)
+      when :investment then PASTEL.bold.bright_yellow(recurring.price)
+      when :income then PASTEL.bold.bright_green(recurring.price)
+      end
+
+      check_string = recurring.next_due > Date.today ? PASTEL.bold.bright_green("✓ - Done for this #{recurring.get_period_string}")
+        : PASTEL.bold.bright_red("𐄂 - Not completed for this #{recurring.get_period_string} - run #{PASTEL.bold.bright_blue "budget recurring sync"}")
+
+      puts ["#{category.bold(recurring.category.title.ljust(15))}",
+      "#{PASTEL.bold recurring.merchant.ljust(15)}",
+      "#{amount} per #{recurring.get_period_string} #{recurring.nature}".ljust(35),
+      "#{PASTEL.cyan(recurring.next_due)}",
+      "#{check_string}"
+    ].join(" · ")
+  
+      
     end
   end
 end

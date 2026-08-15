@@ -1,5 +1,6 @@
 require_relative "../../lib/models/recurring_transaction"
 require "date"
+require "irb"
 
 class RecurringTransactionService
 
