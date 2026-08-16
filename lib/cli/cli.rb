@@ -5,6 +5,7 @@ require_relative 'option_wizard'
 require 'pastel'
 require_relative 'commands/commands'
 
+
 class CLI
   PASTEL = Pastel.new
   def initialize
@@ -17,6 +18,7 @@ class CLI
     @rs = ReportService.new(category_repo, transaction_repo)
     @ls = LimitService.new(limit_repo)
     @rts = RecurringTransactionService.new(category_repo, transaction_repo, recurring_transaction_repo)
+    Dotenv.load
   end
 
   # @param argv [Array<String>]
@@ -28,6 +30,32 @@ class CLI
       return
     end
     case command.downcase.strip
+
+    when "trading"
+      unless ENV["212_API_KEY"] && ENV["212_SECRET_KEY"]
+        errorise("You have not got an API_KEY and a SECRET_KEY configured")
+      end
+      client = Budget::API::Trading212.new(api_key: ENV["212_API_KEY"], api_secret: ENV["212_SECRET_KEY"])
+      action = argv&.shift
+      errorise("You must include an action: summary | day | week | month | year") unless action
+      case action.strip.downcase
+      when "summary", "sum"
+        data = client.summary
+        Budget::API::Trading212Formatter.format_summary(data)
+      when "positions", "pos"
+        data = client.positions
+        Budget::API::Trading212Formatter.format_positions(data)
+      when "orders"
+        data = client.orders
+        pp data
+      when "exports"
+        data = client.exports
+        pp data
+      when "dividends"
+        data = client.dividends
+        pp data
+      end
+      
 
     when "recurring", "rec"
       action = argv&.shift
@@ -45,6 +73,8 @@ class CLI
       when "sync"
         Commands::RecurringTransactions::SyncRecurring.new(@rts).run
       end
+
+
 
     when 'limit', 'l'
       action = argv&.shift
@@ -65,6 +95,8 @@ class CLI
       when 'edit', 'e'
         Commands::Limits::EditLimit.new(@bs, @rs, @ls).run
       end
+
+
 
     # adding transactions
     when 'transaction', 'trans', 't'
@@ -91,6 +123,8 @@ class CLI
         Commands::Transactions::EditTransaction.new(@bs, @rs).run(**dates)
       end
 
+
+
     when 'earn', 'e'
       options = OptionWizard.parse_preset_nature_opts(argv)
       price = argv.shift&.to_f unless argv.empty?
@@ -105,6 +139,8 @@ class CLI
       options = OptionWizard.parse_preset_nature_opts(argv)
       price = argv.shift&.to_f unless argv.empty?
       Commands::Transactions::AddTransaction.new(@bs, @rs).run(price: price, nature: :investment, **options)
+
+
 
     # summaries
     when 'month', 'm'

@@ -17,3 +17,7 @@ gem 'dotenv', '~> 3.2'
 gem 'minitest', '~> 6.0'
 
 gem "irb"
+
+gem "httparty", "~> 0.24.2"
+
+gem "base64", "~> 0.3.0"

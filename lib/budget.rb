@@ -1,6 +1,8 @@
 require_relative 'database'
 require_relative 'migrations'
 require_relative 'helpers/date_helper'
+require_relative "../lib/api/trading212/trading_212_api"
+require_relative "../lib/api/trading212/trading_212_formatter"
 require_relative 'models/category'
 require_relative 'models/transaction'
 require_relative 'models/limit'
@@ -14,3 +16,5 @@ require_relative 'services/budget_service'
 require_relative 'services/report_service'
 require_relative 'services/recurring_transaction_service'
 require_relative 'cli/cli'
+require "dotenv"
+
