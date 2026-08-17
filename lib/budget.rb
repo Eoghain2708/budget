@@ -1,6 +1,12 @@
 require_relative 'database'
 require_relative 'migrations'
 require_relative 'helpers/date_helper'
+require_relative "helpers/period_definer"
+require_relative "helpers/colours"
+require_relative "helpers/formatting_helper"
+require_relative "../lib/api/trading212/trading_212_api"
+require_relative "../lib/api/trading212/trading_212_formatter"
+require_relative "../lib/api/key_manager"
 require_relative 'models/category'
 require_relative 'models/transaction'
 require_relative 'models/limit'
@@ -14,3 +20,14 @@ require_relative 'services/budget_service'
 require_relative 'services/report_service'
 require_relative 'services/recurring_transaction_service'
 require_relative 'cli/cli'
+require_relative "cli/commands/commands"
+require_relative "cli/option_wizard"
+require_relative "cli/limit_formatter"
+require_relative "cli/prompts"
+require_relative "cli/summary_formatter"
+require_relative "app/config"
+require_relative "errors/invalid_broker_error"
+require_relative "errors/trading_212_error"
+require "dotenv"
+require "pastel"
+

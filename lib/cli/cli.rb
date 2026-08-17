@@ -5,6 +5,7 @@ require_relative 'option_wizard'
 require 'pastel'
 require_relative 'commands/commands'
 
+
 class CLI
   PASTEL = Pastel.new
   def initialize
@@ -17,6 +18,7 @@ class CLI
     @rs = ReportService.new(category_repo, transaction_repo)
     @ls = LimitService.new(limit_repo)
     @rts = RecurringTransactionService.new(category_repo, transaction_repo, recurring_transaction_repo)
+    AppConfig.load
   end
 
   # @param argv [Array<String>]
@@ -28,6 +30,42 @@ class CLI
       return
     end
     case command.downcase.strip
+
+    when "trading"
+      begin
+        api_key = ENV.fetch("212_API_KEY")
+        secret_key = ENV.fetch("212_SECRET_KEY")
+      rescue KeyError 
+        errorise("You have not got an API_KEY and a SECRET_KEY configured. Create an API key" \
+        "and run 'budget trading configure' to do so.")
+        return
+      end
+      client = Budget::API::Trading212.new(api_key: api_key, api_secret: secret_key)
+      action = argv&.shift
+      errorise("You must include an action: configure | summary | positions | orders | exports | dividends | sync") unless action
+
+      case action.strip.downcase
+      when "configure", "config"
+        Budget::API::KeyManager.new.configure(:trading212)
+      when "summary", "sum"
+        data = client.summary
+        Budget::API::Trading212Formatter.format_summary(data)
+      when "positions", "pos"
+        data = client.positions
+        Budget::API::Trading212Formatter.format_positions(data)
+      when "orders"
+        data = client.orders
+        pp data
+      when "exports"
+        data = client.exports
+        pp data
+      when "dividends"
+        data = client.dividends
+        pp data
+      when "sync"
+        
+      end
+      
 
     when "recurring", "rec"
       action = argv&.shift
@@ -46,6 +84,8 @@ class CLI
         Commands::RecurringTransactions::SyncRecurring.new(@rts).run
       end
 
+
+
     when 'limit', 'l'
       action = argv&.shift
       errorise('You must include an action: add | delete | edit | see') unless action
@@ -54,9 +94,7 @@ class CLI
       when 'set'
         options = OptionWizard.parse_limit_opts(argv)
         amount = argv.shift&.to_f unless argv.empty?
-
         Commands::Limits::AddLimit.new(@bs, @rs, @ls).run(amount: amount, **options)
-
       when 'see'
         options = OptionWizard.parse_limit_opts(argv)
         Commands::Limits::ViewLimits.new(@bs, @rs, @ls).run(**options)
@@ -65,6 +103,8 @@ class CLI
       when 'edit', 'e'
         Commands::Limits::EditLimit.new(@bs, @rs, @ls).run
       end
+
+
 
     # adding transactions
     when 'transaction', 'trans', 't'
@@ -79,32 +119,32 @@ class CLI
         options = OptionWizard.parse_transaction_opts(argv)
         price = argv.shift&.to_f unless argv.empty?
         Commands::Transactions::AddTransaction.new(@bs, @rs).run(price: price, **options)
-
       when 'delete', 'd'
         options = OptionWizard.parse_transaction_delete_and_edit_opts(argv)
         dates = get_date_for_edit_and_delete(argv, options)
         Commands::Transactions::DeleteTransaction.new(@bs, @rs).run(**dates)
-
       when 'edit', 'e'
         options = OptionWizard.parse_transaction_delete_and_edit_opts(argv)
         dates = get_date_for_edit_and_delete(argv, options)
         Commands::Transactions::EditTransaction.new(@bs, @rs).run(**dates)
       end
 
+
+
     when 'earn', 'e'
       options = OptionWizard.parse_preset_nature_opts(argv)
       price = argv.shift&.to_f unless argv.empty?
       Commands::Transactions::AddTransaction.new(@bs, @rs).run(price: price, nature: :income, **options)
-
     when 'spend', 's'
       options = OptionWizard.parse_preset_nature_opts(argv)
       price = argv.shift&.to_f unless argv.empty?
       Commands::Transactions::AddTransaction.new(@bs, @rs).run(price: price, nature: :expense, **options)
-
     when 'invest', 'i'
       options = OptionWizard.parse_preset_nature_opts(argv)
       price = argv.shift&.to_f unless argv.empty?
       Commands::Transactions::AddTransaction.new(@bs, @rs).run(price: price, nature: :investment, **options)
+
+
 
     # summaries
     when 'month', 'm'
@@ -124,7 +164,6 @@ class CLI
       end
       date = PeriodDefiner.define_week(argv.first)
       Commands::Summaries::WeeklySummary.new(@bs, @rs).run(date, **options)
-
     when 'day', 'd'
       options = OptionWizard.parse_summary_opts(argv)
       if argv.empty?
@@ -133,7 +172,6 @@ class CLI
       end
       date = PeriodDefiner.define_day(argv.first)
       Commands::Summaries::DailySummary.new(@bs, @rs).run(date, **options)
-
     when 'year', 'y'
       options = OptionWizard.parse_summary_opts(argv)
       if argv.empty?
@@ -142,6 +180,7 @@ class CLI
       end
       date = PeriodDefiner.define_year(argv.first)
       Commands::Summaries::YearlySummary.new(@bs, @rs).run(date, **options)
+
 
     when 'category', 'cat', 'c'
       action = argv&.shift
@@ -164,7 +203,6 @@ class CLI
 
     when 'help'
       print_available_commands
-
     else
       puts PASTEL.bright_red.bold 'Invalid command'
       print_available_commands
