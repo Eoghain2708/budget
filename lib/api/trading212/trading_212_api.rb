@@ -29,7 +29,7 @@ module Budget
       def positions
         get("/equity/positions")
       end
-
+      
 
 
       private
