@@ -3,6 +3,7 @@ require 'pastel'
 require_relative '../models/category'
 
 module Prompts
+  PROMPT = TTY::Prompt.new
   class General
     def initialize(prompt)
       @prompt = prompt
@@ -160,6 +161,12 @@ module Prompts
     # @param recurring [Array<RecurringTransaction>]
     def get_ignored(recurring)
       @prompt.multi_select("Select any that you would like to ignore.", recurring, cycle: true)
+    end
+  end
+
+  class TradingPrompts
+    def self.get_wants_to_configure?
+      PROMPT.ask("Configure?")
     end
   end
 end

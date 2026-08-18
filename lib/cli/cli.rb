@@ -38,7 +38,12 @@ class CLI
       rescue KeyError 
         errorise("You have not got an API_KEY and a SECRET_KEY configured. Create an API key" \
         "and run 'budget trading configure' to do so.")
-        return
+        if Prompts::TradingPrompts.get_wants_to_configure?
+          Budget::API::KeyManager.new.configure(:trading212)
+          return
+        else 
+          return
+        end
       end
       client = Budget::API::Trading212.new(api_key: api_key, api_secret: secret_key)
       action = argv&.shift
