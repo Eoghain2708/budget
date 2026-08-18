@@ -27,6 +27,8 @@ module Budget
         end
         ignored = @helper.find_transactions_to_ignore(unprocessed)
         res = unprocessed - ignored
+        return unless res.size > 0
+
         res.each do |transaction|
           @bs.add_transaction_with_object(transaction)
           puts "Transaction created! Amount: #{transaction.price} | #{transaction.merchant} | #{transaction.nature}"
