@@ -153,6 +153,18 @@ module Commands
       @limit_prompts.get_limit(choices)
     end
 
+    # @param transactions [Array<Transaction>]
+    def find_transactions_to_ignore(transactions)
+      choices = transactions&.map do |t|
+        {
+          name: "#{t.merchant} | #{t.nature} | #{t.price} | #{t.date}",
+          value: t
+        }
+      end
+
+      @transaction_prompts.find_transactions_to_ignore(choices)
+    end
+
     # @param t [Transaction]
     # @return [Hash<Symbol, String>]
     def formatted_transaction(t)

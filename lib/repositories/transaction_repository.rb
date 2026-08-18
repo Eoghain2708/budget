@@ -168,8 +168,11 @@ class TransactionRepository
   # @param category [Category]
   # @param merchant [String]
   # @param nature [String]
+  # @param price [Float]
+  # @param on [Date] - specific days rather than using from - to on the same day.
   # @return [Array<Transaction>]
-  def find_by_attrs(from: nil, to: nil, category: nil, merchant: nil, nature: nil, id: nil)
+  def find_by_attrs(from: nil, to: nil, category: nil, merchant: nil, nature: nil, id: nil, price: nil, on: nil)
+    return [] if (from && on) || (to && on)
     sql = 'SELECT * FROM transactions'
     conditions = []
     params = []
@@ -196,7 +199,7 @@ class TransactionRepository
 
     if nature
       conditions << 'nature = ?'
-      params << nature
+      params << nature.to_s
     end
 
     if id
@@ -204,7 +207,17 @@ class TransactionRepository
       params << id
     end
 
-    sql << 'WHERE' << conditions.join(' AND ') unless conditions.empty?
+    if price
+      conditions << "price = ?"
+      params << price
+    end
+
+    if on
+      conditions << "date = ?"
+      params << on.iso8601
+    end
+
+    sql << ' WHERE ' << conditions.join(' AND ') unless conditions.empty?
 
     rows = @db.execute(sql, params)
 

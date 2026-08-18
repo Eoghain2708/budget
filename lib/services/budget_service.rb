@@ -76,6 +76,11 @@ class BudgetService
     @transactions.save(transaction)
   end
 
+  # @param transaction [Transaction]
+  def add_transaction_with_object(transaction)
+    @transactions.save(transaction)
+  end
+
   # @param id [Integer] - ID of transaction being edited
   # @param new_price [Float]
   # @param new_category [Category]
@@ -115,5 +120,17 @@ class BudgetService
   # @return [Array<String>]
   def recent_merchants(category)
     @transactions.get_recent_merchants(category)
+  end
+
+  # @param from [Date]
+  # @param to [Date]
+  # @param category [Category]
+  # @param merchant [String]
+  # @param nature [String]
+  # @param price [Float]
+  # @param on [Date] - specific days rather than using from - to on the same day.
+  # @return [Array<Transaction>]
+  def find_transactions_by_attrs(from: nil, to: nil, category: nil, merchant: nil, nature: nil, id: nil, price: nil, on: nil)
+    @transactions.find_by_attrs(from:, to:, category:, merchant:, nature:, id:, price:, on:)
   end
 end
