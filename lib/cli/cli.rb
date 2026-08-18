@@ -33,8 +33,8 @@ class CLI
 
     when "trading"
       begin
-        api_key = ENV.fetch("212_API_KEY")
-        secret_key = ENV.fetch("212_SECRET_KEY")
+        ENV.fetch("212_API_KEY")
+        ENV.fetch("212_SECRET_KEY")
       rescue KeyError 
         errorise("You have not got an API_KEY and a SECRET_KEY configured. Create an API key" \
         "and run 'budget trading configure' to do so.")
@@ -45,7 +45,7 @@ class CLI
           return
         end
       end
-      client = Budget::API::Trading212.new(api_key: api_key, api_secret: secret_key)
+      client = Budget::API::Trading212.new
       action = argv&.shift
       errorise("You must include an action: configure | summary | positions | orders | exports | dividends | sync") unless action
 
@@ -67,8 +67,8 @@ class CLI
       when "dividends"
         data = client.dividends
         pp data
-      when "sync"
-        
+      when "synchronise", "sync"
+        Budget::API::Trading212Synchroniser.new(@bs, client).synchronise
       end
       
 

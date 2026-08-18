@@ -87,6 +87,12 @@ module Prompts
       choices = %w[date category merchant price nature]
       @prompt.multi_select("Select the attributes you'd like to change:", choices, cycle: true)
     end
+
+    # @param transactions [Array<Transaction>]
+    # @return [Array<Transaction>]
+    def find_transactions_to_ignore(transactions)
+      @prompt.multi_select("Select the transactions you wish to ignore", transactions, cycle: true)
+    end
   end
 
   class LimitPrompts

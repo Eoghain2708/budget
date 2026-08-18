@@ -13,7 +13,7 @@ module Budget
       end
 
       def synchronise
-        
+        raise NotImplementedError, ":synchronise must be implemented."
       end
     end
   end

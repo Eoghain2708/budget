@@ -17,9 +17,9 @@ module Budget
         end
       end
 
-      def initialize(api_key:, api_secret:)
-       @api_key = api_key
-       @api_secret = api_secret
+      def initialize()
+       @api_key = ENV.fetch("212_API_KEY")
+       @api_secret = ENV.fetch("212_SECRET_KEY")
       end
 
       def summary
