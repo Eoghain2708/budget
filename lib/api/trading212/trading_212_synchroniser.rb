@@ -19,8 +19,8 @@ module Budget
         @helper = Commands::Helpers.new(bs: @bs, transaction_prompts: Prompts::TransactionPrompts.new(TTY::Prompt.new, Pastel.new))
       end
 
-      def synchronise
-        unprocessed = find_and_parse_unprocessed
+      def synchronise(offset: 0)
+        unprocessed = find_and_parse_unprocessed(offset)
         unless unprocessed.size > 0
           puts "Trading212 transactions up to date!"
           return
@@ -35,7 +35,7 @@ module Budget
         end
       end
 
-      def find_and_parse_unprocessed
+      def find_and_parse_unprocessed(offset)
          puts "Choose a category for payments."
          category = @helper.get_category
          unprocessed = []
@@ -44,7 +44,7 @@ module Budget
           date = Date.parse(order_data["createdAt"])
           nature = order_data["side"] == "BUY" ? :investment : :income
           found = @bs.find_transactions_by_attrs(
-            on: date, 
+            on: date + offset, 
             nature: nature,
             price: order_data["value"],
             merchant: order_data["ticker"]
