@@ -9,6 +9,8 @@ require_relative "../lib/api/trading212/trading_212_formatter"
 require_relative "../lib/api/trading212/trading_212_synchroniser"
 require_relative "../lib/api/key_manager"
 require_relative "../lib/api/common/investment_synchroniser"
+require_relative "../lib/api/etoro/etoro_api"
+require_relative "../lib/api/etoro/etoro_formatter"
 require_relative 'models/category'
 require_relative 'models/transaction'
 require_relative 'models/limit'

@@ -15,6 +15,10 @@ module Budget
       def synchronise
         raise NotImplementedError, ":synchronise must be implemented."
       end
+
+      def find_and_parse_unprocessed
+        raise NotImplementedError, ":find_and_parse_unprocessed must be implemented"
+      end
     end
   end
 end
