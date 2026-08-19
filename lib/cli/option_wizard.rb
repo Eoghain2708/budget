@@ -44,12 +44,20 @@ module OptionWizard
 
   # @param argv [Array<String>]
   # @return [Hash<String, String>]
-  def self.parse_limit_opts(_argv)
+  def self.parse_limit_opts(argv)
     params = {}
     OptionParser.new do |opts|
       opts.on('--category STRING', String)
       opts.on('--merchant STRING', String)
       opts.on('--period STRING', String)
+    end.parse!(into: params)
+    params
+  end
+
+  def self.parse_trading_sync_opts(argv)
+    params = {}
+    OptionParser.new do |opts|
+      opts.on('--offset INTEGER', Integer)
     end.parse!(into: params)
     params
   end

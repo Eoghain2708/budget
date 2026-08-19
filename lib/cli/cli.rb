@@ -97,7 +97,9 @@ class CLI
         data = client.dividends
         pp data
       when "synchronise", "sync"
-        Budget::API::Trading212Synchroniser.new(@bs, client).synchronise
+        options = OptionWizard.parse_trading_sync_opts(argv)
+        pp options
+        Budget::API::Trading212Synchroniser.new(@bs, client).synchronise(**options)
       end
       
 
