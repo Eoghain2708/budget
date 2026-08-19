@@ -52,15 +52,15 @@ module FormattingHelper
 
   # @param invested [Float]
   # @param current [Float]
-  def self.colourise_position(invested, current)
+  def self.colourise_position(invested, current, signed: false)
     if invested > current
-      colourise_money_negative(current)
+      return colourise_money_negative(current, signed: signed)
     end
 
     if invested == current
       return PASTEL.bold.white(current)
     end
 
-    return colourise_money_positive(current)
+    return colourise_money_positive(current, signed: signed)
   end
 end

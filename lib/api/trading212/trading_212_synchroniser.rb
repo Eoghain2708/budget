@@ -35,9 +35,6 @@ module Budget
         end
       end
 
-
-      private
-
       def find_and_parse_unprocessed
          puts "Choose a category for payments."
          category = @helper.get_category

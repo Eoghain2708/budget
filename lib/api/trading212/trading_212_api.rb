@@ -30,10 +30,7 @@ module Budget
         get("/equity/positions")
       end
       
-
-
-      private
-
+      
       def get(path)
         request = Net::HTTP::Get.new("#{BASE_URI}#{path}")
         request.basic_auth(

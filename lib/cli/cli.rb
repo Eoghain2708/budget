@@ -31,6 +31,35 @@ class CLI
     end
     case command.downcase.strip
 
+    when "etoro"
+      begin 
+        ENV.fetch("ETORO_API_KEY")
+        ENV.fetch("ETORO_SECRET_KEY")
+      rescue KeyError
+        errorise("You have not got an API_KEY and a SECRET_KEY configured. Create an API key" \
+        "and run 'budget trading configure' to do so.")
+          if Prompts::TradingPrompts.get_wants_to_configure?
+            Budget::API::KeyManager.configure(:etoro)
+          end
+        return 
+      end
+      client = Budget::API::EToro.new
+      action = argv&.shift
+      errorise("You must include an action: configure | summary | positions | orders | exports | dividends | sync") unless action
+      case action.strip.downcase
+      when "configure", "config"
+        Budget::API::KeyManager.new.configure(:etoro)
+      when "summary", "sum"
+        data = client.summary
+        pp data
+      when "positions", "pos"
+        data = client.positions
+        Budget::API::EToroFormatter.format_positions(data)
+      when "test"
+        pp client.positions
+      end
+
+
     when "trading"
       begin
         ENV.fetch("212_API_KEY")
